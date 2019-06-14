@@ -1,0 +1,30 @@
+/* ================================= 
+  Media Queries
+==================================== */
+.main-header {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+@media (min-width: 500px) {
+	.row {
+		display: flex;
+		flex-wrap: wrap;
+	}
+
+	.col {
+		flex: 1 50%;
+	}
+}
+
+@media (min-width: 800px) {
+	.main-nav {
+		display: flex;
+	}
+	.main-nav-trigger{
+		display: none;
+	}
+
+
+}
