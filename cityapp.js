@@ -10,7 +10,9 @@ myHeading.addEventListener('click', () => {
 toggleList.addEventListener('click', () => {
   if (hideContent.style.display == 'none') {
     toggleList.textContent = 'Hide list';
-    hideContent.style.display = 'block';
+    hideContent.style.display = 'flex';
+    hideContent.style.flexWrap = 'wrap'; 
+
   } else {
     toggleList.textContent = 'Show list';                        
     hideContent.style.display = 'none';
