@@ -11,6 +11,10 @@ body {
 	color: #3a3a3a;
 	margin: 0;
 }
+#map {
+        height: 100%;
+        width: 100%;
+}
 ul {
   margin: 0;
   padding: 0;
