@@ -9,6 +9,10 @@
     <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /></svg>
     <span id="listen-label">Listen</span>
   </button>
+  <label class="voice" hidden>
+    <span class="visually-hidden">Voice</span>
+    <select id="listen-voice" aria-label="Voice"></select>
+  </label>
   <button type="button" id="listen-stop" class="stop" aria-label="Stop reading" hidden>
     <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 6h12v12H6z" fill="currentColor" /></svg>
   </button>
@@ -28,6 +32,58 @@
     let blocks: HTMLElement[] = [];
     let index = 0;
     let run = 0; // bumps on every jump so a cancelled utterance's onend is ignored
+
+    // Pick the most natural-sounding voice the device offers; let the reader override it.
+    const picker = document.getElementById('listen-voice') as HTMLSelectElement;
+    const lang = (document.documentElement.lang || 'en').slice(0, 2).toLowerCase();
+    const NOVELTY = /albert|bad news|bahh|bells|boing|bubbles|cellos|fred|good news|jester|junior|kathy|organ|ralph|superstar|trinoids|whisper|wobble|zarvox|espeak/i;
+    let voices: SpeechSynthesisVoice[] = [];
+    let voice: SpeechSynthesisVoice | undefined;
+
+    const score = (v: SpeechSynthesisVoice) => {
+      const name = v.name;
+      let points = 0;
+      if (/natural|neural/i.test(name)) points += 100;
+      if (/premium/i.test(name)) points += 90;
+      if (/enhanced/i.test(name)) points += 80;
+      if (/^google/i.test(name)) points += 60;
+      if (/siri|samantha|ava|allison|aria|jenny|guy|zoe|evan|nathan/i.test(name)) points += 40;
+      if (v.lang.replace('_', '-').toLowerCase() === 'en-us') points += 5;
+      if (v.default) points += 1;
+      if (NOVELTY.test(name)) points -= 200;
+      return points;
+    };
+
+    const loadVoices = () => {
+      voices = synth
+        .getVoices()
+        .filter((v) => v.lang.toLowerCase().startsWith(lang) && !NOVELTY.test(v.name))
+        .sort((a, b) => score(b) - score(a) || a.name.localeCompare(b.name));
+      if (!voices.length) return;
+      let saved: string | null = null;
+      try {
+        saved = localStorage.getItem('listen-voice');
+      } catch {}
+      voice = voices.find((v) => v.name === saved) ?? voices[0];
+      picker.replaceChildren(
+        ...voices.map((v) => new Option(v.name.replace(/^Microsoft /, '').replace(/ - .*$/, ''), v.name, false, v === voice)),
+      );
+      (picker.parentElement as HTMLElement).hidden = voices.length < 2;
+    };
+    loadVoices();
+    synth.addEventListener?.('voiceschanged', loadVoices);
+
+    picker.addEventListener('change', () => {
+      voice = voices.find((v) => v.name === picker.value) ?? voice;
+      try {
+        localStorage.setItem('listen-voice', picker.value);
+      } catch {}
+      if (state === 'playing') {
+        run++;
+        synth.cancel();
+        speakFrom(index); // restart the current paragraph in the new voice
+      }
+    });
 
     const setState = (next: State) => {
       state = next;
@@ -62,7 +118,8 @@
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       el.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
       const utterance = new SpeechSynthesisUtterance(el.innerText);
-      utterance.lang = document.documentElement.lang || 'en-US';
+      if (voice) utterance.voice = voice;
+      utterance.lang = voice?.lang ?? (document.documentElement.lang || 'en-US');
       utterance.rate = 1;
       const current = ++run;
       utterance.onend = () => {
@@ -127,7 +184,22 @@
   }
   button:hover { border-color: var(--muted); }
   button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .stop { padding: 0.3rem 0.55rem; color: var(--muted); }
+  .stop { align-self: stretch; padding: 0.3rem 0.65rem; color: var(--muted); }
+  .listen { flex-wrap: wrap; align-items: center; }
+  select {
+    font: inherit;
+    font-size: 0.85rem;
+    max-width: 12rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  select:hover { border-color: var(--muted); color: var(--text); }
+  select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .icon-pause { display: none; }
   .listen[data-state='playing'] .icon-play { display: none; }
   .listen[data-state='playing'] .icon-pause { display: block; }
