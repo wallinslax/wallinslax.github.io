@@ -16,3 +16,11 @@ export function tagSlug(tag: string) {
 export function tagUrl(tag: string) {
   return `/articles/?tags=${encodeURIComponent(tagSlug(tag))}`;
 }
+
+// Rough reading time: ~220 words per minute for English, ~400 characters per minute for CJK text.
+export function readingTime(body = '') {
+  const text = body.replace(/```[\s\S]*?```/g, (code) => code.split('\n').slice(0, 10).join(' '));
+  const cjk = (text.match(/[㐀-鿿぀-ヿ가-힯]/g) ?? []).length;
+  const words = text.replace(/[㐀-鿿぀-ヿ가-힯]/g, ' ').split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 220 + cjk / 400));
+}

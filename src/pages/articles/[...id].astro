@@ -2,7 +2,7 @@
 import { render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Comments from '../../components/Comments.astro';
-import { formatDate, getArticles, tagUrl } from '../../utils';
+import { formatDate, getArticles, readingTime, tagUrl } from '../../utils';
 
 export async function getStaticPaths() {
   const articles = await getArticles();
@@ -16,6 +16,7 @@ interface Props {
 const { article } = Astro.props;
 const { title, description, pubDate, updatedDate, tags } = article.data;
 const { Content } = await render(article);
+const minutes = readingTime(article.body);
 ---
 
 <BaseLayout title={title} description={description}>
@@ -26,6 +27,7 @@ const { Content } = await render(article);
       <div class="meta">
         <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
         {updatedDate && <span>· Updated {formatDate(updatedDate)}</span>}
+        <span>· {minutes} min read</span>
         {tags.map((tag) => <a class="tag" href={tagUrl(tag)}>{tag}</a>)}
       </div>
     </header>
