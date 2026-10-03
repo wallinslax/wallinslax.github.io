@@ -44,7 +44,8 @@ looks like or does:
    preview:
    - `python3 scripts/make-preview.py <scratch_dir>` copies `dist/` with relative links and writes
      `<scratch_dir>/site-preview.html`, printing the files to publish.
-   - Publish `site-preview.html` with those files as a private artifact. Reuse the same artifact
+   - Publish `site-preview.html` with **every** file it prints as a private artifact, including
+     `_astro/*.css` and images, not just the HTML pages; otherwise the preview renders unstyled. Reuse the same artifact
      URL for later previews in the session.
    - Known preview limits: giscus comments, RSS, and `?tags=` deep links don't work there; they
      work on the real site.
