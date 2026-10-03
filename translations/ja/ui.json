@@ -106,5 +106,17 @@
   "footer.motto": {
     "source": "Less is more.",
     "text": "少ないほど、豊かに。"
+  },
+  "consent.text": {
+    "source": "Allow anonymous analytics so I can see which articles people read?",
+    "text": "どの記事が読まれているかを知るため、匿名のアクセス解析を許可しますか？"
+  },
+  "consent.allow": {
+    "source": "Allow",
+    "text": "許可する"
+  },
+  "consent.decline": {
+    "source": "No thanks",
+    "text": "許可しない"
   }
 }
