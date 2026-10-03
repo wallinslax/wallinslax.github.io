@@ -100,4 +100,6 @@ img { max-width: 100%; height: auto; }
   color: var(--accent);
 }
 
+a.tag:hover { text-decoration: none; background: var(--accent); color: var(--bg); }
+
 .muted { color: var(--muted); }
