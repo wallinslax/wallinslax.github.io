@@ -8,6 +8,6 @@ const articles = await getArticles();
 
 <BaseLayout title="Articles" description="Tech articles and notes.">
   <h1>Articles</h1>
-  <p class="muted">Notes on web development, tools, and things I'm building.</p>
+  <p class="muted">Notes on web development, tools, and things I'm building. <a href="/tags/">Browse by tag →</a></p>
   {articles.map((article) => <ArticleCard article={article} />)}
 </BaseLayout>

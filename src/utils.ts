@@ -8,3 +8,11 @@ export async function getArticles() {
 export function formatDate(date: Date) {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
+
+export function tagSlug(tag: string) {
+  return tag.toLowerCase().trim().replace(/\s+/g, '-');
+}
+
+export function tagUrl(tag: string) {
+  return `/tags/${tagSlug(tag)}/`;
+}

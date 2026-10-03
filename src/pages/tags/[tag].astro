@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { getArticles, tagSlug } from '../../utils';
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  const byTag = new Map<string, { name: string; articles: typeof articles }>();
+  for (const article of articles) {
+    for (const name of article.data.tags) {
+      const slug = tagSlug(name);
+      const entry = byTag.get(slug) ?? { name, articles: [] };
+      entry.articles.push(article);
+      byTag.set(slug, entry);
+    }
+  }
+  return [...byTag].map(([tag, { name, articles }]) => ({ params: { tag }, props: { name, articles } }));
+}
+
+const { name, articles } = Astro.props;
+---
+
+<BaseLayout title={`#${name}`} description={`Articles tagged ${name}.`}>
+  <a class="back" href="/tags/">← All tags</a>
+  <h1>#{name}</h1>
+  <p class="muted">{articles.length} {articles.length === 1 ? 'article' : 'articles'}</p>
+  {articles.map((article) => <ArticleCard article={article} />)}
+</BaseLayout>
+
+<style>
+  .back { font-size: 0.9rem; }
+  h1 { margin: 1rem 0 0.2rem; }
+</style>
