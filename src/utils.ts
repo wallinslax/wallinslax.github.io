@@ -14,5 +14,5 @@ export function tagSlug(tag: string) {
 }
 
 export function tagUrl(tag: string) {
-  return `/tags/${tagSlug(tag)}/`;
+  return `/articles/?tags=${encodeURIComponent(tagSlug(tag))}`;
 }
