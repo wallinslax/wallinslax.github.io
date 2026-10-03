@@ -1,5 +1,5 @@
 export const SITE_TITLE = 'Sung-Fu Han';
-export const SITE_DESCRIPTION = 'Full-stack software engineer from Taiwan, building an AI agent platform. Notes on what I learn and the problems I solve at work.';
+export const SITE_DESCRIPTION = 'Software Engineer at Amazon, from Taiwan. Notes on hard technical problems and engineering best practices.';
 export const GITHUB_URL = 'https://github.com/wallinslax';
 
 // Comments via giscus (https://giscus.app). Fill these in to enable comments
