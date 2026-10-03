@@ -1,0 +1,79 @@
+---
+// One-line analytics consent bar, shown only on the live site to visitors in a European time zone
+// who haven't chosen yet. Everyone else never sees it.
+import { SITE_HOST } from '../consts';
+import { useStrings, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const t = useStrings(Astro.props.lang);
+---
+
+<div class="consent" id="consent" data-host={SITE_HOST} role="region" aria-label={t('consent.text')} hidden>
+  <p>{t('consent.text')}</p>
+  <div class="actions">
+    <button type="button" data-choice="granted" class="primary">{t('consent.allow')}</button>
+    <button type="button" data-choice="denied">{t('consent.decline')}</button>
+  </div>
+</div>
+
+<script>
+  const bar = document.getElementById('consent') as HTMLElement;
+  let choice: string | null = null;
+  try {
+    choice = localStorage.getItem('analytics-consent');
+  } catch {}
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
+  const inEurope = timeZone.startsWith('Europe/') || timeZone === 'Atlantic/Reykjavik';
+  if (bar && location.hostname === bar.dataset.host && inEurope && !choice) {
+    bar.hidden = false;
+    bar.addEventListener('click', (event) => {
+      const value = (event.target as HTMLElement).closest('button')?.dataset.choice;
+      if (!value) return;
+      try {
+        localStorage.setItem('analytics-consent', value);
+      } catch {}
+      (window as any).gtag?.('consent', 'update', { analytics_storage: value });
+      bar.hidden = true;
+    });
+  }
+</script>
+
+<style>
+  .consent {
+    position: fixed;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    width: min(var(--max), calc(100% - 32px));
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 30px rgb(0 0 0 / 0.15);
+    font-size: 0.9rem;
+    z-index: 30;
+  }
+  .consent[hidden] { display: none; }
+  p { margin: 0; flex: 1 1 18rem; min-width: 0; }
+  .actions { display: flex; gap: 0.5rem; }
+  button {
+    font: inherit;
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>

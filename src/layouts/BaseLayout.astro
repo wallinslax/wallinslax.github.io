@@ -1,6 +1,8 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import Analytics from '../components/Analytics.astro';
+import ConsentBar from '../components/ConsentBar.astro';
 import { SITE_TITLE } from '../consts';
 import { LANG_META, availableLangs, localizePath, splitLangPath, useStrings, type Lang } from '../i18n';
 import '../styles/global.css';
@@ -34,6 +36,7 @@ const alternates = availableLangs().map((l) => ({ hreflang: LANG_META[l].htmlLan
     <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href="/rss.xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <title>{pageTitle}</title>
+    <Analytics />
     <script is:inline>
       // Apply a saved light/dark choice before first paint to avoid a flash.
       try {
@@ -57,6 +60,7 @@ const alternates = availableLangs().map((l) => ({ hreflang: LANG_META[l].htmlLan
       <slot />
     </main>
     <Footer lang={lang} />
+    <ConsentBar lang={lang} />
   </body>
 </html>
 

@@ -25,5 +25,8 @@
   "listen.stopLabel": "Stop reading",
   "translation.note": "Machine-translated from English",
   "translation.readOriginal": "Read original",
-  "footer.motto": "Less is more."
+  "footer.motto": "Less is more.",
+  "consent.text": "Allow anonymous analytics so I can see which articles people read?",
+  "consent.allow": "Allow",
+  "consent.decline": "No thanks"
 }

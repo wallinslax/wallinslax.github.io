@@ -106,5 +106,17 @@
   "footer.motto": {
     "source": "Less is more.",
     "text": "少即是多。"
+  },
+  "consent.text": {
+    "source": "Allow anonymous analytics so I can see which articles people read?",
+    "text": "允許匿名的網站分析，讓我了解大家讀了哪些文章嗎？"
+  },
+  "consent.allow": {
+    "source": "Allow",
+    "text": "允許"
+  },
+  "consent.decline": {
+    "source": "No thanks",
+    "text": "不用了"
   }
 }

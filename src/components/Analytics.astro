@@ -1,0 +1,36 @@
+---
+// Google Analytics 4 with Consent Mode v2.
+// - Runs only on the live site, so previews and local builds never send data.
+// - Ads storage is always denied (the site has no ads).
+// - Analytics cookies are on by default, except in the EEA, UK, and Switzerland, where they start off
+//   (GA4 still counts those visits without cookies) and a small consent bar asks the visitor.
+import { GA_MEASUREMENT_ID, SITE_HOST } from '../consts';
+
+const CONSENT_REGIONS = [
+  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU',
+  'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO', 'GB', 'CH',
+];
+---
+
+<script is:inline define:vars={{ id: GA_MEASUREMENT_ID, host: SITE_HOST, regions: CONSENT_REGIONS }}>
+  if (location.hostname === host) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () {
+      window.dataLayer.push(arguments);
+    };
+    const denied = { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' };
+    gtag('consent', 'default', { ...denied, analytics_storage: 'granted' });
+    gtag('consent', 'default', { ...denied, analytics_storage: 'denied', region: regions });
+    let choice = null;
+    try {
+      choice = localStorage.getItem('analytics-consent');
+    } catch {}
+    if (choice === 'granted' || choice === 'denied') gtag('consent', 'update', { analytics_storage: choice });
+    gtag('js', new Date());
+    gtag('config', id);
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+    document.head.append(script);
+  }
+</script>
