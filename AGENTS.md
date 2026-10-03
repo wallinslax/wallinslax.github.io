@@ -9,6 +9,7 @@ Personal site and tech blog for Sung-Fu Han, built with Astro and deployed to Gi
 - `src/content/articles/*.md`: articles (front matter: `title`, `description`, `pubDate`, `tags`, `draft`)
 - `src/consts.ts`: site title, description, links, giscus config
 - `src/styles/global.css`: color tokens for light and dark themes
+- `src/voices.ts`: the one read-aloud voice per language (en, ja, zh-TW) for the Listen button; no voice picker by design
 - Deploy: push to `master` runs `.github/workflows/deploy.yml`; PRs run the `build-check` job in `ci.yml`
 
 ## Commands
