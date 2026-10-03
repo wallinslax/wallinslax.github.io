@@ -1,0 +1,31 @@
+---
+import { GISCUS } from '../consts';
+
+const enabled = GISCUS.repoId && GISCUS.categoryId;
+---
+
+{enabled && (
+  <section class="comments">
+    <script
+      is:inline
+      src="https://giscus.app/client.js"
+      data-repo={GISCUS.repo}
+      data-repo-id={GISCUS.repoId}
+      data-category={GISCUS.category}
+      data-category-id={GISCUS.categoryId}
+      data-mapping="pathname"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="preferred_color_scheme"
+      data-lang="en"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async
+    ></script>
+  </section>
+)}
+
+<style>
+  .comments { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+</style>

@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { GITHUB_URL } from '../consts';
+import { getArticles } from '../utils';
+
+const recent = (await getArticles()).slice(0, 3);
+
+const skills = ['TypeScript', 'React', 'Node.js', 'Python', 'SQL', 'Cloud'];
+---
+
+<BaseLayout>
+  <section class="hero">
+    <p class="eyebrow">Hi, I'm</p>
+    <h1>Sung-Fu Han</h1>
+    <p class="lead">
+      Software engineer. I build things for the web and write about what I learn along the way.
+    </p>
+    <div class="actions">
+      <a class="button primary" href="/articles/">Read articles</a>
+      <a class="button" href={GITHUB_URL}>GitHub</a>
+    </div>
+  </section>
+
+  <section>
+    <h2>About</h2>
+    <p>
+      I studied computer science at USC and enjoy working across the stack, from UI details to the
+      services behind them. This site is where I keep notes on tools, patterns, and projects.
+    </p>
+    <ul class="skills">
+      {skills.map((skill) => <li class="tag">{skill}</li>)}
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Latest articles</h2>
+      <a href="/articles/">All articles →</a>
+    </div>
+    {recent.length ? recent.map((article) => <ArticleCard article={article} />) : <p class="muted">Coming soon.</p>}
+  </section>
+</BaseLayout>
+
+<style>
+  .hero { padding: 2rem 0 1rem; }
+  .eyebrow { margin: 0; color: var(--accent); font-weight: 600; }
+  h1 { font-size: clamp(2.2rem, 7vw, 3.2rem); margin: 0.2rem 0 0.8rem; }
+  .lead { font-size: 1.2rem; color: var(--muted); margin: 0 0 1.5rem; }
+  .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  .button {
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-weight: 600;
+  }
+  .button:hover { text-decoration: none; background: var(--surface); }
+  .button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .button.primary:hover { opacity: 0.9; background: var(--accent); }
+  section { margin-top: 2.5rem; }
+  .skills { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+</style>

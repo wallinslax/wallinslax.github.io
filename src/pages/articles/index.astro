@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import { getArticles } from '../../utils';
+
+const articles = await getArticles();
+---
+
+<BaseLayout title="Articles" description="Tech articles and notes.">
+  <h1>Articles</h1>
+  <p class="muted">Notes on web development, tools, and things I'm building.</p>
+  {articles.map((article) => <ArticleCard article={article} />)}
+</BaseLayout>
