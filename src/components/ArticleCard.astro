@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { formatDate, tagUrl } from '../utils';
+import { formatDate, readingTime, tagUrl } from '../utils';
 
 interface Props {
   article: CollectionEntry<'articles'>;
@@ -8,6 +8,7 @@ interface Props {
 
 const { article } = Astro.props;
 const { title, description, pubDate, tags } = article.data;
+const minutes = readingTime(article.body);
 ---
 
 <article>
@@ -17,6 +18,7 @@ const { title, description, pubDate, tags } = article.data;
   <p class="muted">{description}</p>
   <div class="meta">
     <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+    <span>· {minutes} min read</span>
     {tags.map((tag) => <a class="tag" href={tagUrl(tag)}>{tag}</a>)}
   </div>
 </article>
