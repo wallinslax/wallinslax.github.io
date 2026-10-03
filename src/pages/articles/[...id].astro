@@ -1,0 +1,46 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Comments from '../../components/Comments.astro';
+import { formatDate, getArticles } from '../../utils';
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  return articles.map((article) => ({ params: { id: article.id }, props: { article } }));
+}
+
+interface Props {
+  article: CollectionEntry<'articles'>;
+}
+
+const { article } = Astro.props;
+const { title, description, pubDate, updatedDate, tags } = article.data;
+const { Content } = await render(article);
+---
+
+<BaseLayout title={title} description={description}>
+  <a class="back" href="/articles/">← All articles</a>
+  <article>
+    <header>
+      <h1>{title}</h1>
+      <div class="meta">
+        <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+        {updatedDate && <span>· Updated {formatDate(updatedDate)}</span>}
+        {tags.map((tag) => <span class="tag">{tag}</span>)}
+      </div>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+  <Comments />
+</BaseLayout>
+
+<style>
+  .back { font-size: 0.9rem; }
+  header { margin: 1rem 0 2rem; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.4rem); margin: 0 0 0.6rem; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: var(--muted); font-size: 0.9rem; }
+  .prose :global(h2) { margin-top: 2.2rem; }
+  .prose :global(blockquote) { margin: 1.5rem 0; padding: 0.2rem 1rem; border-left: 3px solid var(--accent); color: var(--muted); }
+</style>

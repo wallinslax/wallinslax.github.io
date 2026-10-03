@@ -1,0 +1,31 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../utils';
+
+interface Props {
+  article: CollectionEntry<'articles'>;
+}
+
+const { article } = Astro.props;
+const { title, description, pubDate, tags } = article.data;
+---
+
+<article>
+  <a href={`/articles/${article.id}/`}>
+    <h3>{title}</h3>
+  </a>
+  <p class="muted">{description}</p>
+  <div class="meta">
+    <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+    {tags.map((tag) => <span class="tag">{tag}</span>)}
+  </div>
+</article>
+
+<style>
+  article { padding: 1.25rem 0; border-bottom: 1px solid var(--border); }
+  h3 { margin: 0 0 0.35rem; color: var(--text); }
+  a:hover h3 { color: var(--accent); }
+  a:hover { text-decoration: none; }
+  p { margin: 0 0 0.6rem; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--muted); }
+</style>
