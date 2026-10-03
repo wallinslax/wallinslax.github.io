@@ -6,7 +6,7 @@ export const GITHUB_URL = 'https://github.com/wallinslax';
 // and reactions on articles; leave repoId empty to hide the comment box.
 export const GISCUS = {
   repo: 'wallinslax/wallinslax.github.io',
-  repoId: '',
+  repoId: 'MDEwOlJlcG9zaXRvcnkxOTEwOTU4NTc=',
   category: 'Announcements',
-  categoryId: '',
+  categoryId: 'DIC_kwDOC2PkMc4DG73T',
 };
