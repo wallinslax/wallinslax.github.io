@@ -6,7 +6,7 @@ import { getArticles } from '../utils';
 
 const recent = (await getArticles()).slice(0, 3);
 
-const skills = ['TypeScript', 'React', 'Node.js', 'Python', 'SQL', 'Cloud'];
+const skills = ['Full Stack', 'TypeScript', 'React', 'Node.js', 'Python', 'AI Agents', 'Cloud'];
 ---
 
 <BaseLayout>
@@ -14,7 +14,8 @@ const skills = ['TypeScript', 'React', 'Node.js', 'Python', 'SQL', 'Cloud'];
     <p class="eyebrow">Hi, I'm</p>
     <h1>Sung-Fu Han</h1>
     <p class="lead">
-      Software engineer. I build things for the web and write about what I learn along the way.
+      Full-stack software engineer from Taiwan, currently building an agent platform that lets anyone
+      create AI agents.
     </p>
     <div class="actions">
       <a class="button primary" href="/articles/">Read articles</a>
@@ -25,8 +26,13 @@ const skills = ['TypeScript', 'React', 'Node.js', 'Python', 'SQL', 'Cloud'];
   <section>
     <h2>About</h2>
     <p>
-      I studied computer science at USC and enjoy working across the stack, from UI details to the
-      services behind them. This site is where I keep notes on tools, patterns, and projects.
+      I'm a software engineer from Taiwan who works across the full stack, from front-end interfaces
+      to the back-end services behind them. These days I'm focused on agentic workflows: building an
+      agent platform so that anyone can create their own agent on top of it.
+    </p>
+    <p>
+      This site is my technical notebook. I write down the knowledge I pick up and the problems I run
+      into in my day-to-day work, so they're easier to find next time, for me and for you.
     </p>
     <ul class="skills">
       {skills.map((skill) => <li class="tag">{skill}</li>)}
