@@ -1,0 +1,110 @@
+{
+  "nav.home": {
+    "source": "Home",
+    "text": "首頁"
+  },
+  "nav.articles": {
+    "source": "Articles",
+    "text": "文章"
+  },
+  "nav.language": {
+    "source": "Language",
+    "text": "語言"
+  },
+  "theme.toggle": {
+    "source": "Toggle dark mode",
+    "text": "切換深色模式"
+  },
+  "home.tagline": {
+    "source": "Builder from Taiwan. Software engineer by trade.",
+    "text": "來自台灣，熱愛動手打造。本業是軟體工程師。"
+  },
+  "home.about1": {
+    "source": "I'm drawn to hard technical problems and engineering best practices: the golden paths that make good engineering the easy default. This site is where I write down what I learn.",
+    "text": "我著迷於困難的技術問題與工程最佳實踐：那些讓好的工程方式成為最自然預設的黃金路徑（golden paths）。這個網站記錄我一路學到的東西。"
+  },
+  "home.about2": {
+    "source": "Off-screen I'm usually hiking, camping, or on a tennis court. I also map the places I visit as a <a href=\"https://www.google.com/maps/contrib/102507492348113141833\">Google Maps Local Guide</a>. Researching and diving deep into a problem is what keeps me calm and recharges me. Fellow Trojan.",
+    "text": "離開螢幕時，我通常在登山、露營，或是在網球場上。我也以 <a href=\"https://www.google.com/maps/contrib/102507492348113141833\">Google 地圖在地嚮導</a>的身分，記錄我造訪過的地方。研究問題、深入鑽研，是讓我沉靜下來、重新充電的方式。也是 USC 校友（Fellow Trojan）。"
+  },
+  "home.latest": {
+    "source": "Latest articles",
+    "text": "最新文章"
+  },
+  "home.allArticles": {
+    "source": "All articles →",
+    "text": "所有文章 →"
+  },
+  "home.comingSoon": {
+    "source": "Coming soon.",
+    "text": "敬請期待。"
+  },
+  "articles.title": {
+    "source": "Articles",
+    "text": "文章"
+  },
+  "articles.intro": {
+    "source": "Notes on web development, tools, and things I'm building.",
+    "text": "關於網頁開發、工具，以及我正在打造的東西的筆記。"
+  },
+  "articles.filterLabel": {
+    "source": "Filter by tag",
+    "text": "依標籤篩選"
+  },
+  "articles.clear": {
+    "source": "Clear",
+    "text": "清除"
+  },
+  "articles.showing": {
+    "source": "Showing {shown} of {total} articles",
+    "text": "顯示 {total} 篇中的 {shown} 篇文章"
+  },
+  "article.back": {
+    "source": "← All articles",
+    "text": "← 所有文章"
+  },
+  "article.minRead": {
+    "source": "{n} min read",
+    "text": "約 {n} 分鐘閱讀"
+  },
+  "article.updated": {
+    "source": "Updated {date}",
+    "text": "更新於 {date}"
+  },
+  "listen.listen": {
+    "source": "Listen",
+    "text": "朗讀"
+  },
+  "listen.pause": {
+    "source": "Pause",
+    "text": "暫停"
+  },
+  "listen.resume": {
+    "source": "Resume",
+    "text": "繼續"
+  },
+  "listen.listenLabel": {
+    "source": "Listen to this article",
+    "text": "朗讀這篇文章"
+  },
+  "listen.pauseLabel": {
+    "source": "Pause reading",
+    "text": "暫停朗讀"
+  },
+  "listen.stopLabel": {
+    "source": "Stop reading",
+    "text": "停止朗讀"
+  },
+  "translation.note": {
+    "source": "Machine-translated from English",
+    "text": "本文由英文機器翻譯"
+  },
+  "translation.readOriginal": {
+    "source": "Read original",
+    "text": "閱讀原文"
+  },
+  "footer.motto": {
+    "source": "Less is more.",
+    "text": "少即是多。"
+  }
+}

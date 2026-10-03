@@ -14,4 +14,15 @@ const articles = defineCollection({
   }),
 });
 
-export const collections = { articles };
+// Machine translations of articles, committed under translations/<lang>/articles/ (see AGENTS.md).
+// Entry ids look like "ja/articles/hello-world".
+const translations = defineCollection({
+  loader: glob({ base: './translations', pattern: '*/articles/*.md' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    sourceHash: z.string(),
+  }),
+});
+
+export const collections = { articles, translations };

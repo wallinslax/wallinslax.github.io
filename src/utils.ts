@@ -1,20 +1,49 @@
-import { getCollection } from 'astro:content';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { localizePath, type Lang } from './i18n';
 
 export async function getArticles() {
   const articles = await getCollection('articles', ({ data }) => !data.draft);
   return articles.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 }
 
-export function formatDate(date: Date) {
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+/** An article as shown in one language: the translation when it is current, else the English. */
+export type LocalArticle = {
+  id: string;
+  en: CollectionEntry<'articles'>;
+  translation?: CollectionEntry<'translations'>;
+  title: string;
+  description: string;
+  body: string;
+};
+
+// Same fingerprint as scripts/i18n-status.mjs: first 16 hex chars of sha256 of the English file.
+const sourceHash = (file: string) => crypto.createHash('sha256').update(fs.readFileSync(file, 'utf8')).digest('hex').slice(0, 16);
+
+export async function getLocalArticles(lang: Lang): Promise<LocalArticle[]> {
+  const articles = await getArticles();
+  const translations = lang === 'en' ? [] : await getCollection('translations', ({ id }) => id.startsWith(`${lang}/`));
+  return articles.map((en) => {
+    const candidate = translations.find((t) => t.id === `${lang}/articles/${en.id}`);
+    const current = candidate && en.filePath && candidate.data.sourceHash === sourceHash(en.filePath) ? candidate : undefined;
+    return {
+      id: en.id,
+      en,
+      translation: current,
+      title: current?.data.title ?? en.data.title,
+      description: current?.data.description ?? en.data.description,
+      body: current?.body ?? en.body ?? '',
+    };
+  });
 }
 
 export function tagSlug(tag: string) {
   return tag.toLowerCase().trim().replace(/\s+/g, '-');
 }
 
-export function tagUrl(tag: string) {
-  return `/articles/?tags=${encodeURIComponent(tagSlug(tag))}`;
+export function tagUrl(tag: string, lang: Lang = 'en') {
+  return `${localizePath('/articles/', lang)}?tags=${encodeURIComponent(tagSlug(tag))}`;
 }
 
 // Rough reading time: ~220 words per minute for English, ~400 characters per minute for CJK text.

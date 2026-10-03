@@ -1,12 +1,23 @@
 ---
 import { GISCUS } from '../consts';
+import { LANG_META, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  /** English path of the page, so every language shares one comment thread. */
+  path: string;
+}
+
+const { lang, path } = Astro.props;
+// Same term giscus would derive from the English page's pathname.
+const term = path.length < 2 ? 'index' : path.slice(1);
 
 const enabled = GISCUS.repoId && GISCUS.categoryId;
 ---
 
 {enabled && (
   <section class="comments">
-    <div id="giscus" data-config={JSON.stringify(GISCUS)}></div>
+    <div id="giscus" data-config={JSON.stringify({ ...GISCUS, term, lang: LANG_META[lang].giscus })}></div>
     <script>
       // Load giscus with the page's current light/dark theme.
       const el = document.getElementById('giscus');
@@ -24,13 +35,14 @@ const enabled = GISCUS.repoId && GISCUS.categoryId;
           'repo-id': config.repoId,
           category: config.category,
           'category-id': config.categoryId,
-          mapping: 'pathname',
+          mapping: 'specific',
+          term: config.term,
           strict: '0',
           'reactions-enabled': '1',
           'emit-metadata': '0',
           'input-position': 'bottom',
           theme,
-          lang: 'en',
+          lang: config.lang,
           loading: 'lazy',
         }).forEach(([key, value]) => script.setAttribute(`data-${key}`, value));
         el.after(script);

@@ -1,0 +1,105 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../ArticleCard.astro';
+import { GITHUB_URL, LINKEDIN_URL } from '../../consts';
+import { localizePath, useStrings, type Lang } from '../../i18n';
+import { getLocalArticles } from '../../utils';
+import avatar from '../../assets/avatar.jpg';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useStrings(lang);
+const recent = (await getLocalArticles(lang)).slice(0, 5);
+
+const links = [
+  {
+    href: GITHUB_URL,
+    label: 'GitHub',
+    path: 'M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z',
+  },
+  {
+    href: LINKEDIN_URL,
+    label: 'LinkedIn',
+    path: 'M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z',
+  },
+  {
+    href: '/rss.xml',
+    label: 'RSS',
+    path: 'M3.43 17.14a3.43 3.43 0 1 1 0 6.86 3.43 3.43 0 0 1 0-6.86ZM0 8.04v4.4c6.38 0 11.56 5.18 11.56 11.56h4.4C15.96 15.2 8.8 8.04 0 8.04ZM0 0v4.4C10.82 4.4 19.6 13.18 19.6 24H24C24 10.75 13.25 0 0 0Z',
+  },
+];
+---
+
+<BaseLayout lang={lang}>
+  <section class="hero">
+    <Image src={avatar} alt="Sung-Fu Han" width={112} height={112} class="avatar" loading="eager" />
+    <div>
+      <h1>Sung-Fu Han</h1>
+      <p class="lead">{t('home.tagline')}</p>
+      <ul class="links">
+        {links.map(({ href, label, path }) => (
+          <li>
+            <a href={href} aria-label={label} title={label}>
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d={path} fill="currentColor" /></svg>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="about">
+    <p set:html={t('home.about1')} />
+    <p set:html={t('home.about2')} />
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>{t('home.latest')}</h2>
+      <a href={localizePath('/articles/', lang)}>{t('home.allArticles')}</a>
+    </div>
+    {recent.length ? recent.map((article) => <ArticleCard article={article} lang={lang} />) : <p class="muted">{t('home.comingSoon')}</p>}
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem 0 0.5rem;
+  }
+  .hero :global(.avatar) {
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  h1 { font-size: clamp(1.9rem, 6vw, 2.4rem); margin: 0; }
+  .lead { font-size: 1.15rem; color: var(--muted); margin: 0.15rem 0 0.6rem; }
+  .links { display: flex; gap: 0.35rem; list-style: none; margin: 0; padding: 0; }
+  .links a {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    color: var(--muted);
+  }
+  .links a:hover { color: var(--text); background: var(--surface); }
+  .about { margin-top: 1.75rem; }
+  .about p { margin: 0 0 0.9rem; }
+  section { margin-top: 2.5rem; }
+  .hero { margin-top: 0; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+  @media (max-width: 480px) {
+    .hero { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .hero :global(.avatar) { width: 88px; height: 88px; }
+  }
+</style>

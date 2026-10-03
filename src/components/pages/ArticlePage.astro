@@ -1,0 +1,52 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Comments from '../Comments.astro';
+import ListenButton from '../ListenButton.astro';
+import { formatDateFor, localizePath, useStrings, type Lang } from '../../i18n';
+import { readingTime, tagUrl, type LocalArticle } from '../../utils';
+
+interface Props {
+  article: LocalArticle;
+  lang: Lang;
+}
+
+const { article, lang } = Astro.props;
+const t = useStrings(lang);
+const { pubDate, updatedDate, tags } = article.en.data;
+// Render the translation when it is current; otherwise fall back to the English article.
+const { Content } = await render(article.translation ?? article.en);
+const contentLang = article.translation ? lang : 'en';
+const minutes = readingTime(article.body);
+const englishPath = `/articles/${article.id}/`;
+---
+
+<BaseLayout lang={lang} title={article.title} description={article.description} machineTranslated={!!article.translation}>
+  <a class="back" href={localizePath('/articles/', lang)}>{t('article.back')}</a>
+  <article lang={contentLang === lang ? undefined : 'en'}>
+    <header>
+      <h1>{article.title}</h1>
+      <div class="meta">
+        <time datetime={pubDate.toISOString()}>{formatDateFor(lang, pubDate)}</time>
+        {updatedDate && <span>· {t('article.updated', { date: formatDateFor(lang, updatedDate) })}</span>}
+        <span>· {t('article.minRead', { n: minutes })}</span>
+        {tags.map((tag) => <a class="tag" href={tagUrl(tag, lang)}>{tag}</a>)}
+      </div>
+      <ListenButton lang={lang} />
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+  <Comments lang={lang} path={englishPath} />
+</BaseLayout>
+
+<style>
+  .back { font-size: 0.9rem; }
+  header { margin: 1rem 0 2rem; }
+  h1 { font-size: clamp(1.8rem, 5vw, 2.4rem); margin: 0 0 0.6rem; }
+  header :global(.listen) { margin-top: 1rem; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: var(--muted); font-size: 0.9rem; }
+  .prose :global(h2) { margin-top: 2.2rem; }
+  .prose :global(blockquote) { margin: 1.5rem 0; padding: 0.2rem 1rem; border-left: 3px solid var(--accent); color: var(--muted); }
+</style>

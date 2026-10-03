@@ -1,25 +1,27 @@
 ---
-import type { CollectionEntry } from 'astro:content';
-import { formatDate, readingTime, tagUrl } from '../utils';
+import { formatDateFor, localizePath, useStrings, type Lang } from '../i18n';
+import { readingTime, tagUrl, type LocalArticle } from '../utils';
 
 interface Props {
-  article: CollectionEntry<'articles'>;
+  article: LocalArticle;
+  lang: Lang;
 }
 
-const { article } = Astro.props;
-const { title, description, pubDate, tags } = article.data;
+const { article, lang } = Astro.props;
+const t = useStrings(lang);
+const { pubDate, tags } = article.en.data;
 const minutes = readingTime(article.body);
 ---
 
 <article>
-  <a href={`/articles/${article.id}/`}>
-    <h3>{title}</h3>
+  <a href={localizePath(`/articles/${article.id}/`, lang)}>
+    <h3>{article.title}</h3>
   </a>
-  <p class="muted">{description}</p>
+  <p class="muted">{article.description}</p>
   <div class="meta">
-    <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
-    <span>· {minutes} min read</span>
-    {tags.map((tag) => <a class="tag" href={tagUrl(tag)}>{tag}</a>)}
+    <time datetime={pubDate.toISOString()}>{formatDateFor(lang, pubDate)}</time>
+    <span>· {t('article.minRead', { n: minutes })}</span>
+    {tags.map((tag) => <a class="tag" href={tagUrl(tag, lang)}>{tag}</a>)}
   </div>
 </article>
 

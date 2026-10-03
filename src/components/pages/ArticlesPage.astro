@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../ArticleCard.astro';
+import { useStrings, type Lang } from '../../i18n';
+import { getLocalArticles, tagSlug } from '../../utils';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useStrings(lang);
+const articles = await getLocalArticles(lang);
+
+const counts = new Map<string, { name: string; count: number }>();
+for (const article of articles) {
+  for (const name of article.en.data.tags) {
+    const slug = tagSlug(name);
+    const entry = counts.get(slug) ?? { name, count: 0 };
+    entry.count += 1;
+    counts.set(slug, entry);
+  }
+}
+const tags = [...counts].sort(([, a], [, b]) => b.count - a.count || a.name.localeCompare(b.name));
+---
+
+<BaseLayout lang={lang} title={t('articles.title')} description={t('articles.intro')}>
+  <h1>{t('articles.title')}</h1>
+  <p class="muted">{t('articles.intro')}</p>
+
+  <div class="filters" role="group" aria-label={t('articles.filterLabel')}>
+    {tags.map(([slug, { name, count }]) => (
+      <button type="button" class="chip" data-tag={slug} aria-pressed="false">
+        {name} <span>{count}</span>
+      </button>
+    ))}
+    <button type="button" class="clear" id="clear-tags" hidden>{t('articles.clear')}</button>
+  </div>
+  <p class="status muted" id="filter-status" aria-live="polite" data-template={t('articles.showing')}></p>
+
+  <div id="article-list">
+    {articles.map((article) => (
+      <div data-tags={article.en.data.tags.map(tagSlug).join(' ')}>
+        <ArticleCard article={article} lang={lang} />
+      </div>
+    ))}
+  </div>
+</BaseLayout>
+
+<script>
+  const chips = [...document.querySelectorAll<HTMLButtonElement>('.chip')];
+  const items = [...document.querySelectorAll<HTMLElement>('#article-list > [data-tags]')];
+  const clear = document.getElementById('clear-tags') as HTMLButtonElement;
+  const status = document.getElementById('filter-status') as HTMLElement;
+  const known = new Set(chips.map((chip) => chip.dataset.tag!));
+
+  const fromUrl = new URLSearchParams(location.search).get('tags') ?? '';
+  const selected = new Set(fromUrl.split(',').filter((tag) => known.has(tag)));
+
+  function render() {
+    for (const chip of chips) chip.setAttribute('aria-pressed', String(selected.has(chip.dataset.tag!)));
+    let shown = 0;
+    for (const item of items) {
+      const itemTags = item.dataset.tags!.split(' ');
+      const match = selected.size === 0 || itemTags.some((tag) => selected.has(tag));
+      item.hidden = !match;
+      if (match) shown += 1;
+    }
+    clear.hidden = selected.size === 0;
+    status.textContent = selected.size
+      ? (status.dataset.template ?? '').replace('{shown}', String(shown)).replace('{total}', String(items.length))
+      : '';
+
+    const url = new URL(location.href);
+    if (selected.size) url.searchParams.set('tags', [...selected].join(','));
+    else url.searchParams.delete('tags');
+    history.replaceState(null, '', url);
+  }
+
+  function toggle(tag: string) {
+    if (selected.has(tag)) selected.delete(tag);
+    else selected.add(tag);
+    render();
+  }
+
+  for (const chip of chips) chip.addEventListener('click', () => toggle(chip.dataset.tag!));
+  clear.addEventListener('click', () => {
+    selected.clear();
+    render();
+  });
+
+  // Tags inside the article cards filter in place instead of reloading.
+  document.getElementById('article-list')?.addEventListener('click', (event) => {
+    const link = (event.target as HTMLElement).closest<HTMLAnchorElement>('a.tag');
+    if (!link) return;
+    const tag = new URL(link.href).searchParams.get('tags');
+    if (!tag || !known.has(tag)) return;
+    event.preventDefault();
+    toggle(tag);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  render();
+</script>
+
+<style>
+  .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1.5rem 0 0.25rem; }
+  .chip,
+  .clear {
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .chip span { opacity: 0.6; margin-left: 0.15rem; }
+  .chip:hover { color: var(--text); border-color: var(--muted); }
+  .chip[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .chip[aria-pressed='true'] span { opacity: 0.85; }
+  .clear { border-style: dashed; }
+  .clear:hover { color: var(--text); }
+  .chip:focus-visible,
+  .clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .status { min-height: 1.5em; margin: 0.5rem 0 0; font-size: 0.9rem; }
+</style>

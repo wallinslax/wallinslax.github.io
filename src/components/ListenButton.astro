@@ -1,15 +1,29 @@
 ---
 // Reads the article aloud with the browser's built-in speech synthesis.
 // Hidden when the browser doesn't support it.
+import { useStrings, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const t = useStrings(Astro.props.lang);
+const labels = {
+  listen: t('listen.listen'),
+  pause: t('listen.pause'),
+  resume: t('listen.resume'),
+  listenLabel: t('listen.listenLabel'),
+  pauseLabel: t('listen.pauseLabel'),
+};
 ---
 
-<div class="listen" id="listen" hidden>
-  <button type="button" id="listen-play" aria-label="Listen to this article">
+<div class="listen" id="listen" data-labels={JSON.stringify(labels)} hidden>
+  <button type="button" id="listen-play" aria-label={labels.listenLabel}>
     <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
     <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /></svg>
-    <span id="listen-label">Listen</span>
+    <span id="listen-label">{labels.listen}</span>
   </button>
-  <button type="button" id="listen-stop" class="stop" aria-label="Stop reading" hidden>
+  <button type="button" id="listen-stop" class="stop" aria-label={t('listen.stopLabel')} hidden>
     <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 6h12v12H6z" fill="currentColor" /></svg>
   </button>
 </div>
@@ -25,6 +39,7 @@
 
   if (synth && box) {
     box.hidden = false;
+    const labels = JSON.parse(box.dataset.labels ?? '{}');
     type State = 'idle' | 'playing' | 'paused';
     let state: State = 'idle';
     let blocks: HTMLElement[] = [];
@@ -44,8 +59,8 @@
       state = next;
       box.dataset.state = next;
       document.documentElement.classList.toggle('listening', next !== 'idle');
-      label.textContent = next === 'playing' ? 'Pause' : next === 'paused' ? 'Resume' : 'Listen';
-      play.setAttribute('aria-label', next === 'playing' ? 'Pause reading' : 'Listen to this article');
+      label.textContent = next === 'playing' ? labels.pause : next === 'paused' ? labels.resume : labels.listen;
+      play.setAttribute('aria-label', next === 'playing' ? labels.pauseLabel : labels.listenLabel);
       stop.hidden = next === 'idle';
     };
 
