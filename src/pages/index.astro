@@ -1,12 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
-import { GITHUB_URL } from '../consts';
+import { GITHUB_URL, LINKEDIN_URL } from '../consts';
 import { getArticles } from '../utils';
 
 const recent = (await getArticles()).slice(0, 3);
 
-const skills = ['Full Stack', 'TypeScript', 'React', 'Node.js', 'Python', 'Cloud'];
+const skills = ['Full Stack', 'TypeScript', 'React', 'Node.js', 'Python', 'Cloud', 'Strands'];
 ---
 
 <BaseLayout>
@@ -19,6 +19,7 @@ const skills = ['Full Stack', 'TypeScript', 'React', 'Node.js', 'Python', 'Cloud
     <div class="actions">
       <a class="button primary" href="/articles/">Read articles</a>
       <a class="button" href={GITHUB_URL}>GitHub</a>
+      <a class="button" href={LINKEDIN_URL}>LinkedIn</a>
     </div>
   </section>
 
@@ -26,7 +27,7 @@ const skills = ['Full Stack', 'TypeScript', 'React', 'Node.js', 'Python', 'Cloud
     <h2>About</h2>
     <p>
       I'm interested in hard technical problems and engineering best practices: the golden paths
-      that make good engineering the easy default. This site is where I write down what I learn.
+      that make good engineering the easy default. Also a fellow Trojan (USC). This site is where I write down what I learn.
     </p>
     <ul class="skills">
       {skills.map((skill) => <li class="tag">{skill}</li>)}
