@@ -11,8 +11,9 @@
   color-scheme: light;
 }
 
+/* Dark theme: follows the system unless the visitor picked a theme (data-theme on <html>). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #0f1115;
     --surface: #171a21;
     --text: #e6e8eb;
@@ -22,11 +23,28 @@
     --accent-soft: #1b2540;
     color-scheme: dark;
   }
-  .astro-code,
-  .astro-code span {
+  :root:not([data-theme='light']) .astro-code,
+  :root:not([data-theme='light']) .astro-code span {
     color: var(--shiki-dark) !important;
     background-color: var(--shiki-dark-bg) !important;
   }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0f1115;
+  --surface: #171a21;
+  --text: #e6e8eb;
+  --muted: #9aa3b0;
+  --border: #262b34;
+  --accent: #6ea0ff;
+  --accent-soft: #1b2540;
+  color-scheme: dark;
+}
+
+:root[data-theme='dark'] .astro-code,
+:root[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
 }
 
 * { box-sizing: border-box; }
