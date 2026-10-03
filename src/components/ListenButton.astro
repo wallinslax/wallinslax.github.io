@@ -27,10 +27,12 @@
     let state: State = 'idle';
     let blocks: HTMLElement[] = [];
     let index = 0;
+    let run = 0; // bumps on every jump so a cancelled utterance's onend is ignored
 
     const setState = (next: State) => {
       state = next;
       box.dataset.state = next;
+      document.documentElement.classList.toggle('listening', next !== 'idle');
       label.textContent = next === 'playing' ? 'Pause' : next === 'paused' ? 'Resume' : 'Listen';
       play.setAttribute('aria-label', next === 'playing' ? 'Pause reading' : 'Listen to this article');
       stop.hidden = next === 'idle';
@@ -62,8 +64,9 @@
       const utterance = new SpeechSynthesisUtterance(el.innerText);
       utterance.lang = document.documentElement.lang || 'en-US';
       utterance.rate = 1;
+      const current = ++run;
       utterance.onend = () => {
-        if (state === 'playing') speakFrom(index + 1);
+        if (current === run && state === 'playing') speakFrom(index + 1);
       };
       synth.speak(utterance);
     };
@@ -83,8 +86,22 @@
       }
     });
 
+    // While listening, click a paragraph to jump there.
+    document.querySelector('article')?.addEventListener('click', (event) => {
+      if (state === 'idle') return;
+      const target = event.target as HTMLElement;
+      if (target.closest('a, button') || window.getSelection()?.toString()) return;
+      const i = blocks.findIndex((el) => el.contains(target));
+      if (i === -1) return;
+      run++;
+      synth.cancel();
+      setState('playing');
+      speakFrom(i);
+    });
+
     stop.addEventListener('click', () => {
       setState('idle');
+      run++;
       synth.cancel();
       clearHighlight();
     });
@@ -114,6 +131,13 @@
   .icon-pause { display: none; }
   .listen[data-state='playing'] .icon-play { display: none; }
   .listen[data-state='playing'] .icon-pause { display: block; }
+  :global(.listening .prose :is(p, h2, h3, h4, li, blockquote)),
+  :global(.listening article header h1) { cursor: pointer; }
+  :global(.listening .prose :is(p, h2, h3, h4, li, blockquote):not(.speaking):hover) {
+    background: var(--surface);
+    border-radius: 4px;
+    box-shadow: 0 0 0 4px var(--surface);
+  }
   :global(.speaking) {
     background: var(--accent-soft);
     border-radius: 4px;
