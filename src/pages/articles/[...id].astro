@@ -2,6 +2,7 @@
 import { render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Comments from '../../components/Comments.astro';
+import ListenButton from '../../components/ListenButton.astro';
 import { formatDate, getArticles, readingTime, tagUrl } from '../../utils';
 
 export async function getStaticPaths() {
@@ -30,6 +31,7 @@ const minutes = readingTime(article.body);
         <span>· {minutes} min read</span>
         {tags.map((tag) => <a class="tag" href={tagUrl(tag)}>{tag}</a>)}
       </div>
+      <ListenButton />
     </header>
     <div class="prose">
       <Content />
@@ -42,6 +44,7 @@ const minutes = readingTime(article.body);
   .back { font-size: 0.9rem; }
   header { margin: 1rem 0 2rem; }
   h1 { font-size: clamp(1.8rem, 5vw, 2.4rem); margin: 0 0 0.6rem; }
+  header :global(.listen) { margin-top: 1rem; }
   .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: var(--muted); font-size: 0.9rem; }
   .prose :global(h2) { margin-top: 2.2rem; }
   .prose :global(blockquote) { margin: 1.5rem 0; padding: 0.2rem 1rem; border-left: 3px solid var(--accent); color: var(--muted); }

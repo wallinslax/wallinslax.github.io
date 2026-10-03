@@ -1,0 +1,122 @@
+---
+// Reads the article aloud with the browser's built-in speech synthesis.
+// Hidden when the browser doesn't support it.
+---
+
+<div class="listen" id="listen" hidden>
+  <button type="button" id="listen-play" aria-label="Listen to this article">
+    <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
+    <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /></svg>
+    <span id="listen-label">Listen</span>
+  </button>
+  <button type="button" id="listen-stop" class="stop" aria-label="Stop reading" hidden>
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 6h12v12H6z" fill="currentColor" /></svg>
+  </button>
+</div>
+
+<script>
+  const synth = window.speechSynthesis;
+  const box = document.getElementById('listen') as HTMLElement;
+  const play = document.getElementById('listen-play') as HTMLButtonElement;
+  const stop = document.getElementById('listen-stop') as HTMLButtonElement;
+  const label = document.getElementById('listen-label') as HTMLElement;
+
+  if (synth && box) {
+    box.hidden = false;
+    type State = 'idle' | 'playing' | 'paused';
+    let state: State = 'idle';
+    let blocks: HTMLElement[] = [];
+    let index = 0;
+
+    const setState = (next: State) => {
+      state = next;
+      box.dataset.state = next;
+      label.textContent = next === 'playing' ? 'Pause' : next === 'paused' ? 'Resume' : 'Listen';
+      play.setAttribute('aria-label', next === 'playing' ? 'Pause reading' : 'Listen to this article');
+      stop.hidden = next === 'idle';
+    };
+
+    const clearHighlight = () => blocks.forEach((el) => el.classList.remove('speaking'));
+
+    // Read paragraph by paragraph: long single utterances get cut off in some browsers,
+    // and it lets us highlight where we are. Code blocks are skipped.
+    const collect = () => {
+      const title = document.querySelector<HTMLElement>('article header h1');
+      const body = [...document.querySelectorAll<HTMLElement>('.prose :is(p, h2, h3, h4, li, blockquote)')].filter(
+        (el) => !el.closest('pre') && !el.parentElement?.closest('li, blockquote') && el.innerText.trim(),
+      );
+      return title ? [title, ...body] : body;
+    };
+
+    const speakFrom = (i: number) => {
+      clearHighlight();
+      if (i >= blocks.length) {
+        setState('idle');
+        return;
+      }
+      index = i;
+      const el = blocks[i];
+      el.classList.add('speaking');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
+      const utterance = new SpeechSynthesisUtterance(el.innerText);
+      utterance.lang = document.documentElement.lang || 'en-US';
+      utterance.rate = 1;
+      utterance.onend = () => {
+        if (state === 'playing') speakFrom(index + 1);
+      };
+      synth.speak(utterance);
+    };
+
+    play.addEventListener('click', () => {
+      if (state === 'idle') {
+        blocks = collect();
+        synth.cancel();
+        setState('playing');
+        speakFrom(0);
+      } else if (state === 'playing') {
+        synth.pause();
+        setState('paused');
+      } else {
+        synth.resume();
+        setState('playing');
+      }
+    });
+
+    stop.addEventListener('click', () => {
+      setState('idle');
+      synth.cancel();
+      clearHighlight();
+    });
+
+    window.addEventListener('pagehide', () => synth.cancel());
+  }
+</script>
+
+<style>
+  .listen { display: inline-flex; gap: 0.35rem; }
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--muted); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .stop { padding: 0.3rem 0.55rem; color: var(--muted); }
+  .icon-pause { display: none; }
+  .listen[data-state='playing'] .icon-play { display: none; }
+  .listen[data-state='playing'] .icon-pause { display: block; }
+  :global(.speaking) {
+    background: var(--accent-soft);
+    border-radius: 4px;
+    box-shadow: 0 0 0 4px var(--accent-soft);
+  }
+</style>
