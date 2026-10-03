@@ -1,9 +1,16 @@
 ---
 import { GITHUB_URL, LINKEDIN_URL, SITE_TITLE } from '../consts';
+import { useStrings, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const t = useStrings(Astro.props.lang);
 ---
 
 <footer>
-  <span>© {new Date().getFullYear()} {SITE_TITLE} · Less is more.</span>
+  <span>© {new Date().getFullYear()} {SITE_TITLE} · {t('footer.motto')}</span>
   <span><a href={GITHUB_URL}>GitHub</a> · <a href={LINKEDIN_URL}>LinkedIn</a> · <a href="/rss.xml">RSS</a></span>
 </footer>
 

@@ -1,26 +1,36 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { SITE_TITLE } from '../consts';
+import { LANG_META, availableLangs, localizePath, splitLangPath, useStrings, type Lang } from '../i18n';
 import '../styles/global.css';
 
 interface Props {
+  lang?: Lang;
   title?: string;
   description?: string;
+  /** Show the "Machine-translated from English" note. Defaults to true on non-English pages. */
+  machineTranslated?: boolean;
 }
 
-const { title, description = SITE_DESCRIPTION } = Astro.props;
+const { lang = 'en', title } = Astro.props;
+const t = useStrings(lang);
+const description = Astro.props.description ?? `${t('home.tagline')}`;
+const machineTranslated = Astro.props.machineTranslated ?? lang !== 'en';
 const pageTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const { path } = splitLangPath(Astro.url.pathname);
+const alternates = availableLangs().map((l) => ({ hreflang: LANG_META[l].htmlLang, href: new URL(localizePath(path, l), Astro.site) }));
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={LANG_META[lang].htmlLang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonical} />
+    {alternates.length > 1 && alternates.map(({ hreflang, href }) => <link rel="alternate" hreflang={hreflang} href={href} />)}
     <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href="/rss.xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <title>{pageTitle}</title>
@@ -37,10 +47,23 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:url" content={canonical} />
   </head>
   <body>
-    <Header />
+    <Header lang={lang} />
     <main>
+      {machineTranslated && (
+        <p class="translation-note">
+          {t('translation.note')} · <a href={path} hreflang="en" lang="en">{t('translation.readOriginal')}</a>
+        </p>
+      )}
       <slot />
     </main>
-    <Footer />
+    <Footer lang={lang} />
   </body>
 </html>
+
+<style>
+  .translation-note {
+    margin: 0 0 1.5rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+</style>

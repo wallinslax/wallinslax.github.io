@@ -1,0 +1,110 @@
+{
+  "nav.home": {
+    "source": "Home",
+    "text": "ホーム"
+  },
+  "nav.articles": {
+    "source": "Articles",
+    "text": "記事"
+  },
+  "nav.language": {
+    "source": "Language",
+    "text": "言語"
+  },
+  "theme.toggle": {
+    "source": "Toggle dark mode",
+    "text": "ダークモードを切り替え"
+  },
+  "home.tagline": {
+    "source": "Builder from Taiwan. Software engineer by trade.",
+    "text": "台湾出身のビルダー。本業はソフトウェアエンジニア。"
+  },
+  "home.about1": {
+    "source": "I'm drawn to hard technical problems and engineering best practices: the golden paths that make good engineering the easy default. This site is where I write down what I learn.",
+    "text": "難しい技術的課題と、エンジニアリングのベストプラクティスに惹かれます。良いエンジニアリングを自然と選べるようにする「ゴールデンパス」です。このサイトには、学んだことを書き留めています。"
+  },
+  "home.about2": {
+    "source": "Off-screen I'm usually hiking, camping, or on a tennis court. I also map the places I visit as a <a href=\"https://www.google.com/maps/contrib/102507492348113141833\">Google Maps Local Guide</a>. Researching and diving deep into a problem is what keeps me calm and recharges me. Fellow Trojan.",
+    "text": "画面の外では、たいていハイキングやキャンプをしているか、テニスコートにいます。訪れた場所を<a href=\"https://www.google.com/maps/contrib/102507492348113141833\">Google マップのローカルガイド</a>として記録してもいます。問題を調べて深く掘り下げることが、私を落ち着かせ、エネルギーを回復させてくれます。USC 卒業生（Fellow Trojan）です。"
+  },
+  "home.latest": {
+    "source": "Latest articles",
+    "text": "最新の記事"
+  },
+  "home.allArticles": {
+    "source": "All articles →",
+    "text": "すべての記事 →"
+  },
+  "home.comingSoon": {
+    "source": "Coming soon.",
+    "text": "近日公開。"
+  },
+  "articles.title": {
+    "source": "Articles",
+    "text": "記事"
+  },
+  "articles.intro": {
+    "source": "Notes on web development, tools, and things I'm building.",
+    "text": "Web 開発、ツール、そして自分が作っているものについてのメモです。"
+  },
+  "articles.filterLabel": {
+    "source": "Filter by tag",
+    "text": "タグで絞り込む"
+  },
+  "articles.clear": {
+    "source": "Clear",
+    "text": "クリア"
+  },
+  "articles.showing": {
+    "source": "Showing {shown} of {total} articles",
+    "text": "{total} 件中 {shown} 件の記事を表示"
+  },
+  "article.back": {
+    "source": "← All articles",
+    "text": "← すべての記事"
+  },
+  "article.minRead": {
+    "source": "{n} min read",
+    "text": "{n} 分で読めます"
+  },
+  "article.updated": {
+    "source": "Updated {date}",
+    "text": "{date} 更新"
+  },
+  "listen.listen": {
+    "source": "Listen",
+    "text": "聴く"
+  },
+  "listen.pause": {
+    "source": "Pause",
+    "text": "一時停止"
+  },
+  "listen.resume": {
+    "source": "Resume",
+    "text": "再開"
+  },
+  "listen.listenLabel": {
+    "source": "Listen to this article",
+    "text": "この記事を音声で聴く"
+  },
+  "listen.pauseLabel": {
+    "source": "Pause reading",
+    "text": "読み上げを一時停止"
+  },
+  "listen.stopLabel": {
+    "source": "Stop reading",
+    "text": "読み上げを停止"
+  },
+  "translation.note": {
+    "source": "Machine-translated from English",
+    "text": "英語からの機械翻訳"
+  },
+  "translation.readOriginal": {
+    "source": "Read original",
+    "text": "原文を読む"
+  },
+  "footer.motto": {
+    "source": "Less is more.",
+    "text": "少ないほど、豊かに。"
+  }
+}
