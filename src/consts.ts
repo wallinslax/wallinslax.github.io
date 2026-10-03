@@ -1,5 +1,5 @@
 export const SITE_TITLE = 'Sung-Fu Han';
-export const SITE_DESCRIPTION = 'Software Engineer from Taiwan. Notes on hard technical problems and engineering best practices.';
+export const SITE_DESCRIPTION = 'Builder from Taiwan. Software engineer by trade. Notes on hard technical problems and engineering best practices.';
 export const GITHUB_URL = 'https://github.com/wallinslax';
 export const LINKEDIN_URL = 'https://linkedin.com/in/sungfuhan';
 
