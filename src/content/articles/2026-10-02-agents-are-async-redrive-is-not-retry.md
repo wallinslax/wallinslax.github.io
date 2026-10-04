@@ -1,7 +1,7 @@
 ---
 title: 'Agents are async: why "redrive with the same request ID" breaks idempotency'
 description: 'A customer asked us to re-run failed agent workflows under the same request ID. Here is why that breaks idempotency, auditability, and tracing, and what to build instead.'
-pubDate: 2026-10-03
+pubDate: 2026-10-02
 tags: ['agents', 'api-design', 'idempotency']
 ---
 
