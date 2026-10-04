@@ -18,7 +18,8 @@ const { pubDate, updatedDate, tags } = article.en.data;
 // Render the translation when it is current; otherwise fall back to the English article.
 const { Content } = await render(article.translation ?? article.en);
 const contentLang = article.translation ? lang : 'en';
-const minutes = readingTime(article.body);
+// Same content in every language, so every language shows the English reading time.
+const minutes = readingTime(article.en.body);
 const englishPath = `/articles/${article.id}/`;
 const shareUrl = new URL(localizePath(englishPath, lang), Astro.site).href;
 ---
@@ -53,5 +54,34 @@ const shareUrl = new URL(localizePath(englishPath, lang), Astro.site).href;
   .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 1rem; }
   .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: var(--muted); font-size: 0.9rem; }
   .prose :global(h2) { margin-top: 2.2rem; }
+  .prose :global(table) {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    margin: 1.25rem 0;
+  }
+  .prose :global(th),
+  .prose :global(td) {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .prose :global(th) { color: var(--muted); font-weight: 600; }
+  /* IEEE-style references: list items that start with an anchor like <span id="ref-1"> */
+  .prose :global(ul:has(> li > span[id^='ref-'])) {
+    list-style: none;
+    padding-left: 0;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .prose :global(li:has(> span[id^='ref-'])) { margin: 0 0 0.6rem; overflow-wrap: anywhere; }
+  .prose :global(li:has(> span:target)) { color: var(--text); background: var(--accent-soft); border-radius: 4px; box-shadow: 0 0 0 4px var(--accent-soft); }
+  .prose :global(span[id^='ref-']) { scroll-margin-top: 5rem; }
+  .prose :global(a[href^='#ref-']) { text-decoration: none; font-size: 0.85em; }
   .prose :global(blockquote) { margin: 1.5rem 0; padding: 0.2rem 1rem; border-left: 3px solid var(--accent); color: var(--muted); }
 </style>
