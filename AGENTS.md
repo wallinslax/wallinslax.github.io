@@ -6,7 +6,7 @@ Personal site and tech blog for Sung-Fu Han, built with Astro and deployed to Gi
 ## Project
 
 - `src/components/pages/`: home, articles list (with tag filter), and article page, each taking a `lang`
-- `src/pages/`: thin routes for English (`/`) and translations (`src/pages/[lang]/` → `/jp/`, `/zh-tw/`), plus RSS
+- `src/pages/`: thin routes for English (`/`) and translations (`src/pages/[lang]/` → `/ja/`, `/zh-tw/`), plus RSS
 - `src/content/articles/*.md`: articles (front matter: `title`, `description`, `pubDate`, `tags`, `draft`)
 - `src/consts.ts`: site title, links, giscus and Google Analytics config
 - `src/components/Analytics.astro` + `ConsentBar.astro`: GA4 with Consent Mode; loads only on the live host, and only European-time-zone visitors see the consent bar
@@ -59,7 +59,7 @@ Changes with no visible effect (CI config, docs) skip steps 2–3 but still need
 
 English is the only source language. Japanese (`ja`) and Traditional Chinese for Taiwan (`zh-tw`)
 are machine translations written by Claude Code (no API key, no translation step in CI) and
-committed under `translations/`. English pages live at `/`, translations at `/jp/` (Japanese; language code `ja`) and `/zh-tw/`.
+committed under `translations/`. English pages live at `/`, translations at `/ja/` and `/zh-tw/`.
 
 - `node scripts/i18n-status.mjs` lists missing, stale, and orphaned translations with the
   `sourceHash` each article translation must record (`--json` for agents).
