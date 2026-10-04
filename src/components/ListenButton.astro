@@ -68,10 +68,19 @@ const labels = {
 
     // Read paragraph by paragraph: long single utterances get cut off in some browsers,
     // and it lets us highlight where we are. Code blocks are skipped.
+    // Skip the References list (and its heading): URLs read aloud are noise.
+    const REF_LIST = 'ul:has(> li > span[id^="ref-"])';
+    const isReference = (el: HTMLElement) =>
+      !!el.closest(REF_LIST) || (el.tagName === 'H2' && !!el.nextElementSibling?.matches(REF_LIST));
+
     const collect = () => {
       const title = document.querySelector<HTMLElement>('article header h1');
       const body = [...document.querySelectorAll<HTMLElement>('.prose :is(p, h2, h3, h4, li, blockquote)')].filter(
-        (el) => !el.closest('pre') && !el.parentElement?.closest('li, blockquote') && el.innerText.trim(),
+        (el) =>
+          !el.closest('pre') &&
+          !el.parentElement?.closest('li, blockquote') &&
+          !isReference(el) &&
+          el.innerText.trim(),
       );
       return title ? [title, ...body] : body;
     };
@@ -87,7 +96,7 @@ const labels = {
       el.classList.add('speaking');
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       el.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
-      const utterance = new SpeechSynthesisUtterance(el.innerText);
+      const utterance = new SpeechSynthesisUtterance(el.innerText.replace(/\s*\[\d+\]/g, ''));
       if (voice) utterance.voice = voice;
       utterance.lang = voice?.lang ?? lang;
       utterance.rate = 1;

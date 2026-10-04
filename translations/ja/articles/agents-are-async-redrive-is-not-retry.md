@@ -1,14 +1,14 @@
 ---
 title: "エージェントは非同期：「同じリクエスト ID で再実行」が冪等性を壊す理由"
 description: "ある顧客から、失敗したエージェントのワークフローを同じリクエスト ID で再実行したいという要望がありました。それが冪等性、監査可能性、トレーシングを壊す理由と、代わりに何を作るべきかを解説します。"
-sourceHash: "53772fcae357b3b2"
+sourceHash: "061dba933cf92987"
 ---
 
 私は、顧客が実際の業務をこなす AI エージェントをホストするプラットフォームの開発に携わっています。エージェントはチケットを解決し、コメントを追加し、インシデントをトリアージします。ある顧客のサービスは、私たちの API を呼び出してエージェントを直接起動しています。最近、その顧客から一見もっともな要望がありました。
 
 > 「一時的なバックエンドエラーで実行が失敗したら、**同じリクエスト ID** と `retryable` フラグを付けてもう一度呼び出せるようにしてほしい。そうすればワークフロー全体がもう一度実行されるので。」
 
-リトライのように聞こえますが、そうではありません。この記事では、その理由と、安全な設計とはどのようなものかを説明します。考え方の多くは、AWS Builders' Library の記事 [Making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) に負っています。
+リトライのように聞こえますが、そうではありません。この記事では、その理由と、安全な設計とはどのようなものかを説明します。考え方の多くは、AWS Builders' Library の記事 [Making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) [[1]](#ref-1) に負っています。
 
 ## 現在の API
 
@@ -37,7 +37,7 @@ POST /query
 
 ## 「同じ ID でもう一度実行」が誤った解決策である理由
 
-冪等性キー（idempotency key）は一種の約束です。*このキーを持つすべてのリクエストは同じ単一の操作を指し、同じ結果を得る*という約束です。Builders' Library の記事はこれを**意味的等価性（semantic equivalence）**として説明しています。繰り返されたリクエストは元のリクエストと同じ意味を持たなければならず、呼び出し側はそのレスポンスをその一つの操作の結果として扱えなければなりません。
+冪等性キー（idempotency key）は一種の約束です。*このキーを持つすべてのリクエストは同じ単一の操作を指し、同じ結果を得る*という約束です。Builders' Library の記事はこれを**意味的等価性（semantic equivalence）**として説明しています [[1]](#ref-1)。繰り返されたリクエストは元のリクエストと同じ意味を持たなければならず、呼び出し側はそのレスポンスをその一つの操作の結果として扱えなければなりません。
 
 同じ ID での再実行（redrive）は、この約束をいくつもの形で破ります。
 
@@ -51,7 +51,7 @@ POST /query
 
 ## 根本原因：一つのエンドポイントに二つの役割
 
-非同期ワークフローは、ライフサイクルを持つリソースです。通常どおり作成と読み取りを分けるべきです。Microsoft はこれを [Asynchronous Request-Reply パターン](https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply) としてまとめています。`POST` で処理を開始して `202 Accepted` を返し、`GET` で状態を読み取ります。
+非同期ワークフローは、ライフサイクルを持つリソースです。通常どおり作成と読み取りを分けるべきです。Microsoft はこれを [Asynchronous Request-Reply パターン](https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply) [[2]](#ref-2) としてまとめています。`POST` で処理を開始して `202 Accepted` を返し、`GET` で状態を読み取ります。
 
 ```http
 POST /queries                  # create; the client's requestId is the idempotency key
@@ -76,7 +76,7 @@ Idempotency-Key: r-2
 
 `retryOf` が指すのは古い `requestId` ではなく `queryId` です。リクエスト ID は一回の*呼び出し*に対する短命なキーです。一方、系譜は*実行*同士の関係なので、永続的な記録を参照すべきです。
 
-API によっては、リトライを明示的なアクションにしているものもあります。たとえば Google の[カスタムメソッド（custom methods）](https://google.aip.dev/136)のスタイルでの `POST /queries/q-123:retry` です。Azure Data Factory は、失敗した実行を参照しそのパラメーターを再利用する[新しいパイプライン実行を開始](https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/create-run)し、GitHub Actions はワークフローを新しい試行（attempt）として[再実行](https://docs.github.com/en/rest/actions/workflow-runs#re-run-a-workflow)しつつ、以前の試行も保持します。どちらの形でも構いません。重要なのは、古い実行にリンクされた新しい実行であることです。
+API によっては、リトライを明示的なアクションにしているものもあります。たとえば Google の[カスタムメソッド（custom methods）](https://google.aip.dev/136) [[3]](#ref-3)のスタイルでの `POST /queries/q-123:retry` です。Azure Data Factory は、失敗した実行を参照しそのパラメーターを再利用する[新しいパイプライン実行を開始](https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/create-run) [[4]](#ref-4)し、GitHub Actions はワークフローを新しい試行（attempt）として[再実行](https://docs.github.com/en/rest/actions/workflow-runs#re-run-a-workflow) [[5]](#ref-5)しつつ、以前の試行も保持します。どちらの形でも構いません。重要なのは、古い実行にリンクされた新しい実行であることです。
 
 ## まだ API の形を変えられない場合
 
@@ -120,7 +120,7 @@ def handle_query(req):
 重要なポイントは四つあります。
 
 1. **条件付き書き込み（conditional write）で `requestId` を確保します**（たとえば DynamoDB の `attribute_not_exists` 条件）。テナントごとにスコープを分けることで、同時に行われた二つの最初の呼び出しが両方とも実行を開始することを防げます。
-2. **リクエストのフィンガープリントを取ります。** 誰かが異なるボディでリクエスト ID を再利用した場合、無関係な結果を黙って返すのではなく、競合（conflict）を返します。Builders' Library もこの点を明示的に指摘しています。
+2. **リクエストのフィンガープリントを取ります。** 誰かが異なるボディでリクエスト ID を再利用した場合、無関係な結果を黙って返すのではなく、競合（conflict）を返します。Builders' Library もこの点を明示的に指摘しています [[1]](#ref-1)。
 3. **親を検証します。** 再実行は、終了状態でリトライ可能な失敗からのみ許可します。`RUNNING` や `SUCCEEDED` からは決して許可しません。
 4. **会話の中でリトライであることを明示します。** 会話には新しいターンと、失敗したターンのリトライの両方が含まれます。エージェントのコンテキストを再構築するときは、各ターンの最新の試行だけを残してください。そうしないと、失敗した試行とそのリトライが別々の二つのターンに見えてしまいます。
 
@@ -145,8 +145,17 @@ def handle_query(req):
 
 エージェントの登場によって、これらはむしろより差し迫った課題になっています。エージェントは長時間動作し、リトライし、実際のシステムに触れます。最も安全な前提は、あらゆる操作が二回以上実行されるということです。だからこそ、最初からそれを前提に設計しましょう。
 
-## 考えてみてほしいこと
+## あなたへの問い
 
-AWS Step Functions は、失敗した実行を**同じ実行 ARN のまま** [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) できます。まさにこの記事が警告してきたことのように聞こえます。
+AWS Step Functions は、失敗した実行を**同じ実行 ARN のまま** [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) [[6]](#ref-6) できます。まさにこの記事が警告してきたことのように聞こえます。
 
 では、redrive はどうやって不変性（immutability）と監査可能性（auditability）を保っているのでしょうか。ヒント：実行のイベント履歴を見てみてください。
+
+## 参考文献
+
+- <span id="ref-1"></span>[1] M. Featonby, "Making retries safe with idempotent APIs," *Amazon Builders' Library*, Amazon Web Services. [Online]. Available: <https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/>
+- <span id="ref-2"></span>[2] Microsoft, "Asynchronous Request-Reply pattern," *Azure Architecture Center*. [Online]. Available: <https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply>
+- <span id="ref-3"></span>[3] Google, "AIP-136: Custom methods," *API Improvement Proposals*. [Online]. Available: <https://google.aip.dev/136>
+- <span id="ref-4"></span>[4] Microsoft, "Pipelines - Create Run," *Azure Data Factory REST API Reference*. [Online]. Available: <https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/create-run>
+- <span id="ref-5"></span>[5] GitHub, "Re-run a workflow," *GitHub REST API Documentation*. [Online]. Available: <https://docs.github.com/en/rest/actions/workflow-runs#re-run-a-workflow>
+- <span id="ref-6"></span>[6] Amazon Web Services, "Redriving executions in Step Functions," *AWS Step Functions Developer Guide*. [Online]. Available: <https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html>

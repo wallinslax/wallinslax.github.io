@@ -9,7 +9,7 @@ I work on a platform where customers host AI agents that do real work: resolving
 
 > "If a run fails with a transient backend error, let us call again with the **same request ID** and a `retryable` flag, so the whole workflow runs again."
 
-It sounds like a retry. It isn't. This post explains why, and what a safe design looks like. The thinking leans heavily on the AWS Builders' Library article [Making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/).
+It sounds like a retry. It isn't. This post explains why, and what a safe design looks like. The thinking leans heavily on the AWS Builders' Library article [Making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) [[1]](#ref-1).
 
 ## The API we have
 
@@ -38,7 +38,7 @@ So `/query` is "create or get" in one call. That works because a `requestId` map
 
 ## Why "same ID, run it again" is the wrong fix
 
-An idempotency key is a promise: *every request with this key refers to the same single operation, and gets the same outcome.* The Builders' Library article frames it as **semantic equivalence**: a repeated request must mean the same thing as the original, and the caller must be able to treat the response as the result of that one operation.
+An idempotency key is a promise: *every request with this key refers to the same single operation, and gets the same outcome.* The Builders' Library article frames it as **semantic equivalence**: a repeated request must mean the same thing as the original, and the caller must be able to treat the response as the result of that one operation [[1]](#ref-1).
 
 Redriving under the same ID breaks that promise in several ways:
 
@@ -52,7 +52,7 @@ The customer's real need is valid: *transient failures should be recoverable.* T
 
 ## The root cause: one endpoint, two jobs
 
-An async workflow is a resource with a lifecycle. It wants the usual create/read split, which Microsoft documents as the [Asynchronous Request-Reply pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply): `POST` starts the work and returns `202 Accepted`, and `GET` reads its status:
+An async workflow is a resource with a lifecycle. It wants the usual create/read split, which Microsoft documents as the [Asynchronous Request-Reply pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply) [[2]](#ref-2): `POST` starts the work and returns `202 Accepted`, and `GET` reads its status:
 
 ```http
 POST /queries                  # create; the client's requestId is the idempotency key
@@ -77,7 +77,7 @@ The server copies the input and conversation from `q-123`: a retry should never 
 
 `retryOf` points at the `queryId`, not the old `requestId`. Request IDs are short-lived keys for a *call*; lineage is a relationship between *executions*, so it should reference the permanent record.
 
-Some APIs make retry an explicit action instead, such as `POST /queries/q-123:retry` in the style of Google's [custom methods](https://google.aip.dev/136). Azure Data Factory [starts a new pipeline run](https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/create-run) that references the failed one and reuses its parameters, and GitHub Actions [re-runs](https://docs.github.com/en/rest/actions/workflow-runs#re-run-a-workflow) a workflow as a new attempt while keeping earlier attempts. Either shape works. What matters is a new execution, linked to the old one.
+Some APIs make retry an explicit action instead, such as `POST /queries/q-123:retry` in the style of Google's [custom methods](https://google.aip.dev/136) [[3]](#ref-3). Azure Data Factory [starts a new pipeline run](https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/create-run) [[4]](#ref-4) that references the failed one and reuses its parameters, and GitHub Actions [re-runs](https://docs.github.com/en/rest/actions/workflow-runs#re-run-a-workflow) [[5]](#ref-5) a workflow as a new attempt while keeping earlier attempts. Either shape works. What matters is a new execution, linked to the old one.
 
 ## If you can't change the API shape yet
 
@@ -121,7 +121,7 @@ def handle_query(req):
 Four details matter:
 
 1. **Claim the `requestId` with a conditional write** (for example a DynamoDB `attribute_not_exists` condition), scoped per tenant, so two concurrent first calls can't both start a run.
-2. **Fingerprint the request.** If someone reuses a request ID with a different body, return a conflict instead of silently handing back an unrelated result. The Builders' Library calls this out explicitly.
+2. **Fingerprint the request.** If someone reuses a request ID with a different body, return a conflict instead of silently handing back an unrelated result. The Builders' Library calls this out explicitly [[1]](#ref-1).
 3. **Validate the parent.** Only allow a redrive from a terminal, retryable failure. Never from `RUNNING` or `SUCCEEDED`.
 4. **Mark retries inside the conversation.** A conversation holds both new turns and retries of failed turns. When you rebuild the agent's context, keep only the latest attempt of each turn, or the failed attempt and its retry will look like two separate turns.
 
@@ -146,8 +146,17 @@ Two ways to handle that, and agent platforms usually need both:
 
 Agents make all of this more pressing, not less. They are long-running, they retry, and they touch real systems. The safest assumption is that every operation will run more than once, so design for that from the start.
 
-## Food for thought
+## Question for you
 
-AWS Step Functions can [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) a failed execution under the **same execution ARN**, which sounds like exactly what this post warns against.
+AWS Step Functions can [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) [[6]](#ref-6) a failed execution under the **same execution ARN**, which sounds like exactly what this post warns against.
 
 So how does redrive stay immutable and auditable? Hint: look at the execution's event history.
+
+## References
+
+- <span id="ref-1"></span>[1] M. Featonby, "Making retries safe with idempotent APIs," *Amazon Builders' Library*, Amazon Web Services. [Online]. Available: <https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/>
+- <span id="ref-2"></span>[2] Microsoft, "Asynchronous Request-Reply pattern," *Azure Architecture Center*. [Online]. Available: <https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply>
+- <span id="ref-3"></span>[3] Google, "AIP-136: Custom methods," *API Improvement Proposals*. [Online]. Available: <https://google.aip.dev/136>
+- <span id="ref-4"></span>[4] Microsoft, "Pipelines - Create Run," *Azure Data Factory REST API Reference*. [Online]. Available: <https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/create-run>
+- <span id="ref-5"></span>[5] GitHub, "Re-run a workflow," *GitHub REST API Documentation*. [Online]. Available: <https://docs.github.com/en/rest/actions/workflow-runs#re-run-a-workflow>
+- <span id="ref-6"></span>[6] Amazon Web Services, "Redriving executions in Step Functions," *AWS Step Functions Developer Guide*. [Online]. Available: <https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html>
