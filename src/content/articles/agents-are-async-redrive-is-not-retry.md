@@ -43,7 +43,7 @@ The customer's real need is valid: *transient failures should be recoverable.* T
 
 ## The root cause: one endpoint, two jobs
 
-An async workflow is a resource with a lifecycle. It wants the usual create/read split:
+An async workflow is a resource with a lifecycle. It wants the usual create/read split, which Microsoft documents as the [Asynchronous Request-Reply pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply): `POST` starts the work and returns `202 Accepted`, and `GET` reads its status:
 
 ```http
 POST /queries                  # create an execution (idempotency key in header)

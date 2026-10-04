@@ -1,7 +1,7 @@
 ---
 title: "Agent 是非同步的：為什麼「用同一個 request ID 重新執行」會破壞冪等性"
 description: "有客戶要求我們在同一個 request ID 下重新執行失敗的 agent 工作流程。本文說明這樣做為什麼會破壞冪等性、可稽核性與追蹤，以及應該怎麼設計。"
-sourceHash: "6094140f71d28d72"
+sourceHash: "2b88f9635ef74e9a"
 ---
 
 我在一個平台上工作，客戶在上面託管會做實事的 AI agent：處理工單、新增留言、分類事件。有一位客戶的服務會直接呼叫我們的 API 來觸發他們的 agent。最近他們提出了一個聽起來很合理的要求：
@@ -42,7 +42,7 @@ POST /query
 
 ## 根本原因：一個端點，兩種職責
 
-非同步工作流程是一個有生命週期的資源，它需要常見的建立／讀取分離：
+非同步工作流程是一個有生命週期的資源，它需要常見的建立／讀取分離，也就是 Microsoft 所說的 [Asynchronous Request-Reply 模式](https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply)：用 `POST` 啟動工作並回傳 `202 Accepted`，再用 `GET` 讀取狀態：
 
 ```http
 POST /queries                  # create an execution (idempotency key in header)
