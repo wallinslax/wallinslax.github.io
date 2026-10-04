@@ -9,7 +9,7 @@ I work on a platform where customers host AI agents that do real work: resolving
 
 > "If a run fails with a transient backend error, let us call again with the **same request ID** and a `retryable` flag, so the whole workflow runs again."
 
-It sounds like a retry. It isn't. This post explains why, and what a safe design looks like. The thinking leans heavily on the AWS Builders' Library article [Making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) [[1]](#ref-1).
+It sounds like a retry. It isn't. Here is why, and what to build instead, leaning on the AWS Builders' Library article [Making retries safe with idempotent APIs](https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/) [[1]](#ref-1).
 
 ## The API we have
 
@@ -21,10 +21,7 @@ There is one endpoint, `/query`, and three IDs:
 | `queryId` | Server | One *execution* of the agent. Permanent, and the record we audit and trace. |
 | `conversationId` | Server | A thread of work. Many queries can share one conversation. |
 
-`/query` does two jobs:
-
-1. **First call** with a new `requestId`: the server creates query `q-123` and starts the agent workflow.
-2. **Later calls** with the same `requestId`: return the progress of `q-123`.
+`/query` does two jobs: the first call with a new `requestId` creates query `q-123` and starts the agent; later calls with the same `requestId` return its progress.
 
 ```http
 POST /query
@@ -32,23 +29,19 @@ POST /query
 → { "queryId": "q-123", "conversationId": "c-7", "status": "RUNNING" }
 ```
 
-Behind it, an LLM runs for seconds to minutes and calls MCP tools along the way. Those tools have side effects: a comment is posted, a ticket changes state, someone gets paged.
-
-So `/query` is "create or get" in one call. That works because a `requestId` maps to exactly one `queryId`: **this one execution**. Calling again is safe, because the server sees a known request ID and returns what it already has. That is idempotency doing its job.
+Behind it, an LLM runs for minutes and calls MCP tools with real side effects: comments get posted, tickets change state, people get paged. Calling again is safe because a `requestId` maps to exactly one `queryId`, **one execution**. That is idempotency doing its job.
 
 ## Why "same ID, run it again" is the wrong fix
 
-An idempotency key is a promise: *every request with this key refers to the same single operation, and gets the same outcome.* The Builders' Library article frames it as **semantic equivalence**: a repeated request must mean the same thing as the original, and the caller must be able to treat the response as the result of that one operation [[1]](#ref-1).
+An idempotency key is a promise: *every request with this key means the same single operation and gets the same outcome*. The Builders' Library calls this **semantic equivalence** [[1]](#ref-1). Redriving under the same ID breaks it:
 
-Redriving under the same ID breaks that promise in several ways:
+- **Terminal states stop being terminal.** `FAILED` gets overwritten by `RUNNING`, then maybe `SUCCEEDED`. What actually happened is gone.
+- **Auditability breaks.** "What did `q-123` do?" no longer has one stable answer; it depends on *when* you ask.
+- **Tracing breaks.** Logs and traces for `q-123` mix two executions, just when you need to debug the first.
+- **Clients get confused.** A poller that cached `FAILED` now disagrees with the server.
+- **Side effects can repeat.** Comments posted before the failure get posted again.
 
-- **Terminal states stop being terminal.** `FAILED` was a fact about what happened. Re-running under the same ID overwrites it with `RUNNING`, then maybe `SUCCEEDED`. The history of what actually happened is gone.
-- **Auditability breaks.** For an agent that posts comments and changes tickets, "what did run `q-123` do?" must have one stable answer. With redrive it depends on *when* you ask.
-- **Tracing breaks.** Logs, traces, and metrics keyed by `q-123` now mix two different executions. Debugging the first failure gets harder exactly when you need it.
-- **Clients get confused.** Any poller that already saw `FAILED` and cached it now disagrees with the server. Two pollers with the same ID can race: one sees the old run, one sees the new.
-- **Side effects can repeat.** The first run may have posted two comments before failing. Running everything again posts them again, unless every tool is idempotent too.
-
-The customer's real need is valid: *transient failures should be recoverable.* The fix is to make that recovery a **new, linked execution**, not a rewrite of the old one.
+The customer's need is valid: *transient failures should be recoverable.* The fix is a **new, linked execution**, not a rewrite of the old one.
 
 ## The root cause: one endpoint, two jobs
 
@@ -73,15 +66,13 @@ Idempotency-Key: r-2
 → 202 Accepted  { "queryId": "q-124", "retryOf": "q-123", "conversationId": "c-7", "status": "RUNNING" }
 ```
 
-The server copies the input and conversation from `q-123`: a retry should never change what is being retried. Now `q-123` stays `FAILED` forever, `q-124` has its own trace, and the lineage `q-123 → q-124` is explicit and auditable.
+The server copies the input and conversation from `q-123`, because a retry should never change what is being retried. `q-123` stays `FAILED` forever, `q-124` gets its own trace, and the lineage is explicit. `retryOf` points at the permanent `queryId`, not the short-lived `requestId`: lineage links *executions*, not calls.
 
-`retryOf` points at the `queryId`, not the old `requestId`. Request IDs are short-lived keys for a *call*; lineage is a relationship between *executions*, so it should reference the permanent record.
-
-Some APIs make retry an explicit action instead, such as `POST /queries/q-123:retry` in the style of Google's [custom methods](https://google.aip.dev/136) [[3]](#ref-3). Azure Data Factory [starts a new pipeline run](https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/create-run) [[4]](#ref-4) that references the failed one and reuses its parameters, and GitHub Actions [re-runs](https://docs.github.com/en/rest/actions/workflow-runs#re-run-a-workflow) [[5]](#ref-5) a workflow as a new attempt while keeping earlier attempts. Either shape works. What matters is a new execution, linked to the old one.
+Some APIs make retry an explicit action instead, like `POST /queries/q-123:retry` in the style of Google's [custom methods](https://google.aip.dev/136) [[3]](#ref-3). Azure Data Factory [starts a new pipeline run](https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/create-run) [[4]](#ref-4) that references the failed one and reuses its parameters, and GitHub Actions [re-runs](https://docs.github.com/en/rest/actions/workflow-runs#re-run-a-workflow) [[5]](#ref-5) a workflow as a new attempt while keeping earlier ones. Either shape works, as long as the retry is a new, linked execution.
 
 ## If you can't change the API shape yet
 
-We only have `/query` today, and customers depend on it. You keep the same guarantees with a new `requestId` and a `retryOf` field:
+Customers depend on `/query` today. A new `requestId` plus a `retryOf` field gives the same guarantees:
 
 ```http
 POST /query
@@ -120,31 +111,27 @@ def handle_query(req):
 
 Four details matter:
 
-1. **Claim the `requestId` with a conditional write** (for example a DynamoDB `attribute_not_exists` condition), scoped per tenant, so two concurrent first calls can't both start a run.
-2. **Fingerprint the request.** If someone reuses a request ID with a different body, return a conflict instead of silently handing back an unrelated result. The Builders' Library calls this out explicitly [[1]](#ref-1).
-3. **Validate the parent.** Only allow a redrive from a terminal, retryable failure. Never from `RUNNING` or `SUCCEEDED`.
-4. **Mark retries inside the conversation.** A conversation holds both new turns and retries of failed turns. When you rebuild the agent's context, keep only the latest attempt of each turn, or the failed attempt and its retry will look like two separate turns.
+1. **Claim the `requestId` with a conditional write** (e.g. DynamoDB `attribute_not_exists`), per tenant, so two concurrent calls can't both start a run.
+2. **Fingerprint the request.** A reused request ID with a different body gets a conflict, not someone else's result [[1]](#ref-1).
+3. **Validate the parent.** Only redrive a terminal, retryable failure.
+4. **Mark retries in the conversation.** When rebuilding the agent's context, keep only the latest attempt of each turn, or a failed attempt and its retry look like two turns.
 
 ## Idempotency has to reach the tools
 
-A new execution ID fixes the bookkeeping, but the side effects from the failed run already happened. If run `q-123` posted a comment before it failed, `q-124` will post it again unless something stops it.
+A new execution ID fixes the bookkeeping, but the failed run's side effects already happened. If `q-123` posted a comment, `q-124` will post it again unless something stops it. Agent platforms usually need both of these:
 
-Two ways to handle that, and agent platforms usually need both:
-
-- **Idempotent tools.** Derive a key for each tool call from stable values, such as `hash(rootQueryId, stepId, toolName)`, and have the tool dedupe on it. Use the *root* of the retry chain, so a redrive maps to the same keys for the same logical step. Don't let the LLM invent the key, and don't hash the LLM's arguments either: neither is stable across runs.
-- **Resume, don't restart.** Checkpoint completed steps. A redrive can then skip steps that already succeeded and continue from the failure point, instead of replaying the whole plan.
+- **Idempotent tools.** Key each tool call on stable values, like `hash(rootQueryId, stepId, toolName)`, and dedupe on it. Using the *root* of the retry chain maps a redrive to the same keys. Never let the LLM invent the key or hash its arguments; neither is stable across runs.
+- **Resume, don't restart.** Checkpoint completed steps so a redrive continues from the failure point.
 
 ## Checklist
 
-- One request ID maps to one execution, forever.
-- The client owns `requestId`; the server owns `queryId` and `conversationId`.
-- Terminal states are immutable. Recovery creates a new execution.
-- Link retries to the failed `queryId` (`retryOf`), and copy the input on the server.
-- Claim request IDs with conditional writes, and reject reuse with different parameters.
-- Split create and read for async work when you can.
+- One request ID maps to one execution, forever. The client owns `requestId`; the server owns `queryId` and `conversationId`.
+- Terminal states are immutable. A retry is a new execution linked by `retryOf`, with the input copied on the server.
+- Claim request IDs with conditional writes; reject reuse with different parameters.
+- Split create and read for async work.
 - Push idempotency down to every tool with side effects.
 
-Agents make all of this more pressing, not less. They are long-running, they retry, and they touch real systems. The safest assumption is that every operation will run more than once, so design for that from the start.
+Agents are long-running, they retry, and they touch real systems. Assume every operation runs more than once, and design for it from the start.
 
 ## Question for you
 

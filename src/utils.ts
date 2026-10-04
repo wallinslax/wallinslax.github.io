@@ -46,9 +46,11 @@ export function tagUrl(tag: string, lang: Lang = 'en') {
   return `${localizePath('/articles/', lang)}?tags=${encodeURIComponent(tagSlug(tag))}`;
 }
 
-// Rough reading time: ~220 words per minute for English, ~400 characters per minute for CJK text.
+// Rough reading time (references excluded): ~220 words per minute for English, ~400 characters per minute for CJK text.
 export function readingTime(body = '') {
-  const text = body.replace(/```[\s\S]*?```/g, (code) => code.split('\n').slice(0, 10).join(' '));
+  const text = body
+    .replace(/```[\s\S]*?```/g, (code) => code.split('\n').slice(0, 10).join(' '))
+    .replace(/^- <span id="ref-.*$/gm, ''); // reference list entries aren't read
   const cjk = (text.match(/[㐀-鿿぀-ヿ가-힯]/g) ?? []).length;
   const words = text.replace(/[㐀-鿿぀-ヿ가-힯]/g, ' ').split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / 220 + cjk / 400));
