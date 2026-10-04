@@ -107,6 +107,11 @@ Translation rules:
 
 ## Conventions
 
+- Articles are reasoning-first: every new article has a `## Why…` section early on that explains why the
+  problem exists and why it matters, before any What or How. Why → What → How is the default shape.
+  (The 2021 SRE → SWE essay is a "why" throughout and stays as it is.)
+- Articles are a 5–6 minute read (about 1,100–1,300 words; the reading time excludes References).
+  Tighten or split a bigger topic into a series rather than going long.
 - Keep the home page minimal: avatar, one-line intro, icon links, short About, latest articles.
 - Never put the owner's email, student ID, API keys, or other private data on the site.
 - Use the color tokens in `global.css`; every color must work in both themes.
