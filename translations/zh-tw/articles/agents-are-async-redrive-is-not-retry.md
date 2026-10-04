@@ -1,7 +1,7 @@
 ---
 title: "Agent 是非同步的：為什麼「用同一個 request ID 重新執行」會破壞冪等性"
 description: "有客戶要求我們在同一個 request ID 下重新執行失敗的 agent 工作流程。本文說明這樣做為什麼會破壞冪等性、可稽核性與追蹤，以及應該怎麼設計。"
-sourceHash: "2b88f9635ef74e9a"
+sourceHash: "9abe7b4bb6319777"
 ---
 
 我在一個平台上工作，客戶在上面託管會做實事的 AI agent：處理工單、新增留言、分類事件。有一位客戶的服務會直接呼叫我們的 API 來觸發他們的 agent。最近他們提出了一個聽起來很合理的要求：
@@ -12,19 +12,28 @@ sourceHash: "2b88f9635ef74e9a"
 
 ## 我們現有的 API
 
-只有一個端點 `/query`，它身兼兩職：
+只有一個端點 `/query`，以及三種 ID：
 
-1. 用新的 `queryId` **第一次呼叫**：啟動 agent 工作流程。
-2. 用同一個 `queryId` **之後再呼叫**：回傳工作流程的進度。
+| ID | 由誰建立 | 代表什麼 |
+|---|---|---|
+| `requestId` | 用戶端 | 一次*呼叫*。它是冪等鍵，會保留幾天。 |
+| `queryId` | 伺服器 | agent 的一次*執行*。永久保存，是我們稽核與追蹤的紀錄。 |
+| `conversationId` | 伺服器 | 一串工作脈絡。多個 query 可以共用同一個 conversation。 |
+
+`/query` 身兼兩職：
+
+1. 用新的 `requestId` **第一次呼叫**：伺服器建立 query `q-123` 並啟動 agent 工作流程。
+2. 用同一個 `requestId` **之後再呼叫**：回傳 `q-123` 的進度。
 
 ```http
 POST /query
-{ "queryId": "q-123", "input": "Triage incident INC-42" }
+{ "requestId": "r-1", "conversationId": "c-7", "input": "Triage incident INC-42" }
+→ { "queryId": "q-123", "status": "RUNNING" }
 ```
 
 在背後，LLM 會跑上幾秒到幾分鐘，過程中呼叫 MCP 工具。這些工具有副作用（side effect）：會貼出留言、會改變工單狀態、會呼叫某人起來處理。
 
-所以 `/query` 是把「建立或取得」合在一次呼叫裡。這之所以行得通，是因為 `queryId` 只代表一件事：**這一次的執行**。再次呼叫是安全的，因為伺服器看到已知的 ID，就回傳它已經有的結果。這正是冪等性（idempotency）在發揮作用。
+所以 `/query` 是把「建立或取得」合在一次呼叫裡。這之所以行得通，是因為一個 `requestId` 只會對應到一個 `queryId`：**這一次的執行**。再次呼叫是安全的，因為伺服器看到已知的 request ID，就回傳它已經有的結果。這正是冪等性（idempotency）在發揮作用。
 
 ## 為什麼「同一個 ID，再跑一次」是錯誤的解法
 
@@ -45,64 +54,75 @@ POST /query
 非同步工作流程是一個有生命週期的資源，它需要常見的建立／讀取分離，也就是 Microsoft 所說的 [Asynchronous Request-Reply 模式](https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply)：用 `POST` 啟動工作並回傳 `202 Accepted`，再用 `GET` 讀取狀態：
 
 ```http
-POST /queries                  # create an execution (idempotency key in header)
-Idempotency-Key: 8f1c...
+POST /queries                  # create; the client's requestId is the idempotency key
+Idempotency-Key: r-1
+{ "conversationId": "c-7", "input": "Triage incident INC-42" }
 → 202 Accepted  { "queryId": "q-123", "status": "RUNNING" }
 
 GET  /queries/q-123            # read progress; always safe to repeat
 → 200 OK        { "status": "FAILED", "error": { "retryable": true } }
 ```
 
-這樣一來，redrive 就成為一個獨立且明確的操作，它會建立一個指向舊執行的**新**執行：
+這樣一來，redrive 就是一次**新的呼叫**，它會建立一個與失敗執行相關聯的**新執行**：
 
 ```http
-POST /queries/q-123/retries
-Idempotency-Key: 5d2e...
-→ 202 Accepted  { "queryId": "q-124", "retryOf": "q-123", "status": "RUNNING" }
+POST /queries
+Idempotency-Key: r-2
+{ "retryOf": "q-123" }
+→ 202 Accepted  { "queryId": "q-124", "retryOf": "q-123", "conversationId": "c-7", "status": "RUNNING" }
 ```
 
-現在 `q-123` 永遠維持 `FAILED`，`q-124` 有自己的 trace，而 `q-123 → q-124` 的血緣關係（lineage）明確且可稽核。
+伺服器會從 `q-123` 複製輸入與 conversation：重試永遠不該改變被重試的內容。現在 `q-123` 永遠維持 `FAILED`，`q-124` 有自己的 trace，而 `q-123 → q-124` 的血緣關係（lineage）明確且可稽核。
+
+`retryOf` 指向的是 `queryId`，而不是舊的 `requestId`。request ID 是針對一次*呼叫*的短期鍵；血緣關係則是*執行*之間的關係，所以應該參照永久保存的紀錄。
+
+有些 API 則把重試做成一個明確的動作，例如採用 Google [自訂方法（custom methods）](https://google.aip.dev/136)風格的 `POST /queries/q-123:retry`。Azure Data Factory 會[啟動一次新的 pipeline 執行](https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/create-run)，參照失敗的那一次並沿用它的參數；GitHub Actions 則會把工作流程[重新執行](https://docs.github.com/en/rest/actions/workflow-runs#re-run-a-workflow)為一次新的嘗試（attempt），同時保留先前的嘗試。兩種形式都可行，重點在於建立一次新的、與舊執行相關聯的執行。
 
 ## 如果暫時還不能改變 API 的形狀
 
-我們目前只有 `/query`，而且客戶依賴著它。不過你還是可以藉由新增一個欄位、而不是重複使用 ID，來保住這些保證：
+我們目前只有 `/query`，而且客戶依賴著它。只要使用新的 `requestId` 加上一個 `retryOf` 欄位，就能保住同樣的保證：
 
 ```http
 POST /query
-{ "queryId": "q-124", "retryOf": "q-123", "input": "Triage incident INC-42" }
+{ "requestId": "r-2", "retryOf": "q-123" }
 ```
 
 伺服器端的規則：
 
 ```python
 def handle_query(req):
-    existing = store.get(req.query_id)
-    if existing:
-        # Same ID: never re-run. Reject if the request means something different.
-        if existing.fingerprint != fingerprint(req):
-            raise Conflict("queryId reused with different parameters")
-        return existing.status_view()
+    claim = idempotency.get(req.tenant_id, req.request_id)
+    if claim:
+        # Same request ID: never re-run. Reject if the request means something different.
+        if claim.fingerprint != fingerprint(req):
+            raise Conflict("requestId reused with different parameters")
+        return queries.get(claim.query_id).status_view()
 
     if req.retry_of:
-        parent = store.get(req.retry_of)
+        parent = queries.get(req.retry_of)
         if parent is None or parent.status != "FAILED" or not parent.error.retryable:
             raise BadRequest("retryOf must point to a failed, retryable query")
+        input, conversation_id = parent.input, parent.conversation_id  # never trust a re-sent input
+    else:
+        input, conversation_id = req.input, req.conversation_id or new_conversation_id()
 
-    execution = store.create(           # conditional write: fails if the ID already exists
-        query_id=req.query_id,
-        retry_of=req.retry_of,
-        fingerprint=fingerprint(req),
-        status="RUNNING",
-    )
-    start_workflow(execution)
-    return execution.status_view()
+    query_id = new_query_id()
+    # Conditional write: if another call claimed this requestId first, return its query instead.
+    if not idempotency.put_if_absent(req.tenant_id, req.request_id, query_id, fingerprint(req), ttl=days(7)):
+        return handle_query(req)
+
+    query = queries.create(query_id=query_id, conversation_id=conversation_id,
+                           retry_of=req.retry_of, input=input, status="RUNNING")
+    start_workflow(query)
+    return query.status_view()
 ```
 
-有三個細節很重要：
+有四個細節很重要：
 
-1. **用條件寫入（conditional write）來建立**（例如 DynamoDB 的 `attribute_not_exists` 條件），這樣兩個同時發生的第一次呼叫就不會都啟動執行。
-2. **為請求計算指紋（fingerprint）。** 如果有人用不同的輸入重複使用某個 ID，就回傳衝突，而不是默默交回一個不相干的結果。Builders' Library 特別點出了這一點。
+1. **用條件寫入（conditional write）來佔用 `requestId`**（例如 DynamoDB 的 `attribute_not_exists` 條件），並以租戶（tenant）為範圍，這樣兩個同時發生的第一次呼叫就不會都啟動執行。
+2. **為請求計算指紋（fingerprint）。** 如果有人用不同的內容重複使用某個 request ID，就回傳衝突，而不是默默交回一個不相干的結果。Builders' Library 特別點出了這一點。
 3. **驗證父執行。** 只允許從終止且可重試的失敗進行 redrive，絕不能從 `RUNNING` 或 `SUCCEEDED` 進行。
+4. **在 conversation 中標記重試。** 一個 conversation 裡同時有新的回合（turn）與對失敗回合的重試。重建 agent 的上下文時，每個回合只保留最新的那次嘗試，否則失敗的嘗試和它的重試看起來會像兩個不同的回合。
 
 ## 冪等性必須延伸到工具
 
@@ -115,11 +135,11 @@ def handle_query(req):
 
 ## 檢查清單
 
-- 一個 request ID 永遠只代表一次執行。
+- 一個 request ID 永遠只對應一次執行。
+- `requestId` 由用戶端掌握；`queryId` 與 `conversationId` 由伺服器掌握。
 - 終止狀態不可變更。復原時要建立新的執行。
-- 明確連結重試（`retryOf`），讓血緣關係可以稽核。
-- 建立執行時使用條件寫入。
-- 拒絕以不同參數重複使用的 ID。
+- 把重試連結到失敗的 `queryId`（`retryOf`），並在伺服器端複製輸入。
+- 用條件寫入來佔用 request ID，並拒絕以不同參數重複使用。
 - 在可行時，把非同步工作的建立與讀取分開。
 - 把冪等性往下推到每一個有副作用的工具。
 
