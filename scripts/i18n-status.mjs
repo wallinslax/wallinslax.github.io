@@ -1,4 +1,5 @@
 // Lists translations that are missing or out of date, with the source hash each one must record.
+// Only public articles are translated: drafts and offline articles are skipped until they go public.
 // No API calls; translations are written by Claude Code (see AGENTS.md).
 //
 //   node scripts/i18n-status.mjs          # human-readable report
@@ -15,6 +16,9 @@ export const sourceHash = (text) => crypto.createHash('sha256').update(text).dig
 
 const en = JSON.parse(fs.readFileSync('src/i18n/en.json', 'utf8'));
 const articles = fs.readdirSync(ARTICLES).filter((f) => f.endsWith('.md'));
+// Same default as src/content.config.ts: an article without `visibility` is a draft.
+const visibility = (text) => text.match(/^---\n[\s\S]*?^visibility:\s*['"]?(\w+)/m)?.[1] ?? 'draft';
+const isPublic = (name) => visibility(fs.readFileSync(path.join(ARTICLES, name), 'utf8')) === 'public';
 
 const report = [];
 for (const [lang, language] of Object.entries(LANGS)) {
@@ -27,7 +31,7 @@ for (const [lang, language] of Object.entries(LANGS)) {
   if (uiKeys.length) report.push({ lang, language, kind: 'ui', file: `${OUT}/${lang}/ui.json`, keys: uiKeys });
 
   // Articles: one file per article, front matter records the hash of the English source file.
-  for (const name of articles) {
+  for (const name of articles.filter(isPublic)) {
     const source = fs.readFileSync(path.join(ARTICLES, name), 'utf8');
     const hash = sourceHash(source);
     const target = `${OUT}/${lang}/articles/${name}`;

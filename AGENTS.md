@@ -7,7 +7,7 @@ Personal site and tech blog for Sung-Fu Han, built with Astro and deployed to Gi
 
 - `src/components/pages/`: home, articles list (with tag filter), and article page, each taking a `lang`
 - `src/pages/`: thin routes for English (`/`) and translations (`src/pages/[lang]/` → `/ja/`, `/zh-tw/`), plus RSS
-- `src/content/articles/YYYY-MM-DD-slug.md`: articles, named with their `pubDate` so they sort by date in the editor (the date is dropped from the URL, which stays `/articles/slug/`; translations use the same file name) (front matter: `title`, `description`, `pubDate`, `tags`, `draft`, `visibility`: `public` by default, or `offline` to take an article off the site without deleting it). Lists are sorted newest first in `getArticles()` (`src/utils.ts`)
+- `src/content/articles/YYYY-MM-DD-slug.md`: articles, named with their `pubDate` so they sort by date in the editor (the date is dropped from the URL, which stays `/articles/slug/`; translations use the same file name) (front matter: `title`, `description`, `pubDate`, `tags`, `visibility`: `draft` by default while it's still being written, `public` to publish it, or `offline` to take a finished article off the site without deleting it; only `public` articles appear on the deployed site; drafts also show in `npm run dev` and in a `SHOW_DRAFTS=1 npm run build`, for previewing). Lists are sorted newest first in `getArticles()` (`src/utils.ts`)
 - `src/consts.ts`: site title, links, giscus and Google Analytics config
 - `src/components/Analytics.astro` + `ConsentBar.astro`: GA4 with Consent Mode; loads only on the live host, and only European-time-zone visitors see the consent bar
 - `src/styles/global.css`: color tokens for light and dark themes
@@ -29,9 +29,11 @@ npm run build    # must pass before any PR
 npm run dev      # http://localhost:4321
 ```
 
-## Every article change ships with its translations
+## Translate when an article goes public
 
-Whenever an English article is added or edited, or `src/i18n/en.json` changes, regenerate the
+Drafts are for iterating on the English: don't translate an article while its `visibility` is
+`draft` (or `offline`). Translation starts when an article becomes `public`, and from then on
+every edit to a public article, or any change to `src/i18n/en.json`, ships with updated
 Japanese and Traditional Chinese translations in the same PR, before the preview step:
 run `node scripts/i18n-status.mjs`, translate everything it lists (one subagent per language),
 and re-run it until it reports "Translations are up to date". Details in "Translations" below.
@@ -68,8 +70,8 @@ committed under `translations/`. English pages live at `/`, translations at `/ja
 
 - `node scripts/i18n-status.mjs` lists missing, stale, and orphaned translations with the
   `sourceHash` each article translation must record (`--json` for agents).
-- Run it whenever an English article or `src/i18n/en.json` changes, and bring translations up to
-  date in the same PR. Use one subagent per language when there is more than a little to do.
+- It only checks `public` articles. Run it whenever a public article or `src/i18n/en.json` changes,
+  or an article becomes public, and bring translations up to date in the same PR. Use one subagent per language when there is more than a little to do.
 - Stale or missing translations never break the site: an article whose `sourceHash` doesn't match
   its English source is shown in English, and a UI string whose `source` doesn't match is shown in
   English.

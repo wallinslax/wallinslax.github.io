@@ -1,7 +1,7 @@
 ---
 title: "SRE から SWE にキャリアを転向した理由"
 description: "他社製品の設定から、自分の手でプロダクトを作る仕事へ。サイト信頼性エンジニアリング（SRE）からソフトウェアエンジニアリング（SWE）に移った背景をお話しします。"
-sourceHash: "196675bd52e68e12"
+sourceHash: "425d2ed00043c519"
 ---
 
 > 2021 年 9 月に [LinkedIn](https://www.linkedin.com/posts/activity-6843957426618810368-MlBA) に投稿したものです。

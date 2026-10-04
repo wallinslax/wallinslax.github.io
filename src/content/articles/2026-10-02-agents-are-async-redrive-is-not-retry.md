@@ -3,6 +3,7 @@ title: 'Agents are async: why "redrive with the same request ID" breaks idempote
 description: 'A customer asked us to re-run failed agent workflows under the same request ID. Here is why that breaks idempotency, auditability, and tracing, and what to build instead.'
 pubDate: 2026-10-02
 tags: ['agents', 'api-design', 'idempotency']
+visibility: public
 ---
 
 I work on a platform where customers host AI agents that do real work: resolving tickets, adding comments, triaging incidents. One customer's service calls our API to trigger their agent directly. Recently they asked for something that sounded reasonable:

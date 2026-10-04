@@ -3,8 +3,12 @@ import fs from 'node:fs';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { localizePath, type Lang } from './i18n';
 
+// Drafts are visible only to the owner: in `npm run dev`, or in a preview build with SHOW_DRAFTS=1.
+// The deployed site never sets either, so it shows public articles only.
+const showDrafts = import.meta.env.DEV || process.env.SHOW_DRAFTS === '1';
+
 export async function getArticles() {
-  const articles = await getCollection('articles', ({ data }) => !data.draft && data.visibility === 'public');
+  const articles = await getCollection('articles', ({ data }) => data.visibility === 'public' || (showDrafts && data.visibility === 'draft'));
   return articles.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 }
 
