@@ -19,7 +19,7 @@ Personal site and tech blog for Sung-Fu Han, built with Astro and deployed to Gi
 - `src/i18n/en.json`: all English UI text (nav, buttons, home intro). `src/i18n/index.ts`: language helpers
 - `translations/<lang>/`: committed machine translations (`ja`, `zh-tw`); see "Translations" below
 - `src/voices.ts`: the one read-aloud voice per language (en, ja, zh-TW) for the Listen button; no voice picker by design
-- Deploy: push to `master` runs `.github/workflows/deploy.yml`; PRs run the `build-check` and `commit-format` jobs in `ci.yml`
+- Deploy: push to `mainline` runs `.github/workflows/deploy.yml`; PRs run the `build-check` and `commit-format` jobs in `ci.yml`
 
 ## Commands
 
