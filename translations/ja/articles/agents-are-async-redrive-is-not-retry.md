@@ -1,7 +1,7 @@
 ---
 title: "エージェントは非同期：「同じリクエスト ID で再実行」が冪等性を壊す理由"
 description: "ある顧客から、失敗したエージェントのワークフローを同じリクエスト ID で再実行したいという要望がありました。それが冪等性、監査可能性、トレーシングを壊す理由と、代わりに何を作るべきかを解説します。"
-sourceHash: "2b88f9635ef74e9a"
+sourceHash: "9abe7b4bb6319777"
 ---
 
 私は、顧客が実際の業務をこなす AI エージェントをホストするプラットフォームの開発に携わっています。エージェントはチケットを解決し、コメントを追加し、インシデントをトリアージします。ある顧客のサービスは、私たちの API を呼び出してエージェントを直接起動しています。最近、その顧客から一見もっともな要望がありました。
@@ -12,19 +12,28 @@ sourceHash: "2b88f9635ef74e9a"
 
 ## 現在の API
 
-エンドポイントは `/query` の一つだけで、二つの役割を担っています。
+エンドポイントは `/query` の一つだけで、ID は三つあります。
 
-1. 新しい `queryId` での**最初の呼び出し**：エージェントのワークフローを開始します。
-2. 同じ `queryId` での**以降の呼び出し**：ワークフローの進捗を返します。
+| ID | 誰が作成するか | 何を表すか |
+|---|---|---|
+| `requestId` | クライアント | 一回の*呼び出し*。冪等性キーであり、数日間保持されます。 |
+| `queryId` | サーバー | エージェントの一回の*実行*。永続的で、監査とトレースの対象となる記録です。 |
+| `conversationId` | サーバー | 一連の作業のスレッド。複数のクエリが一つの会話を共有できます。 |
+
+`/query` は二つの役割を担っています。
+
+1. 新しい `requestId` での**最初の呼び出し**：サーバーがクエリ `q-123` を作成し、エージェントのワークフローを開始します。
+2. 同じ `requestId` での**以降の呼び出し**：`q-123` の進捗を返します。
 
 ```http
 POST /query
-{ "queryId": "q-123", "input": "Triage incident INC-42" }
+{ "requestId": "r-1", "conversationId": "c-7", "input": "Triage incident INC-42" }
+→ { "queryId": "q-123", "status": "RUNNING" }
 ```
 
 その裏では LLM が数秒から数分にわたって動作し、途中で MCP ツールを呼び出します。これらのツールには副作用（side effect）があります。コメントが投稿され、チケットの状態が変わり、誰かが呼び出されます。
 
-つまり `/query` は一回の呼び出しで「作成または取得」を行います。これが成り立つのは、`queryId` がただ一つのこと、つまり**この一回の実行**を意味しているからです。再度呼び出しても安全なのは、サーバーが既知の ID を見て、すでに持っている結果を返すからです。これこそ冪等性（idempotency）が本来の役割を果たしている状態です。
+つまり `/query` は一回の呼び出しで「作成または取得」を行います。これが成り立つのは、一つの `requestId` がちょうど一つの `queryId`、つまり**この一回の実行**に対応しているからです。再度呼び出しても安全なのは、サーバーが既知のリクエスト ID を見て、すでに持っている結果を返すからです。これこそ冪等性（idempotency）が本来の役割を果たしている状態です。
 
 ## 「同じ ID でもう一度実行」が誤った解決策である理由
 
@@ -45,64 +54,75 @@ POST /query
 非同期ワークフローは、ライフサイクルを持つリソースです。通常どおり作成と読み取りを分けるべきです。Microsoft はこれを [Asynchronous Request-Reply パターン](https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply) としてまとめています。`POST` で処理を開始して `202 Accepted` を返し、`GET` で状態を読み取ります。
 
 ```http
-POST /queries                  # create an execution (idempotency key in header)
-Idempotency-Key: 8f1c...
+POST /queries                  # create; the client's requestId is the idempotency key
+Idempotency-Key: r-1
+{ "conversationId": "c-7", "input": "Triage incident INC-42" }
 → 202 Accepted  { "queryId": "q-123", "status": "RUNNING" }
 
 GET  /queries/q-123            # read progress; always safe to repeat
 → 200 OK        { "status": "FAILED", "error": { "retryable": true } }
 ```
 
-すると再実行は、古い実行を参照する**新しい**実行を作成する、独立した明示的な操作になります。
+すると再実行は、失敗した実行にリンクされた**新しい実行**を作成する**新しい呼び出し**になります。
 
 ```http
-POST /queries/q-123/retries
-Idempotency-Key: 5d2e...
-→ 202 Accepted  { "queryId": "q-124", "retryOf": "q-123", "status": "RUNNING" }
+POST /queries
+Idempotency-Key: r-2
+{ "retryOf": "q-123" }
+→ 202 Accepted  { "queryId": "q-124", "retryOf": "q-123", "conversationId": "c-7", "status": "RUNNING" }
 ```
 
-これで `q-123` は永久に `FAILED` のままとなり、`q-124` は独自のトレースを持ち、`q-123 → q-124` という系譜（lineage）が明示的かつ監査可能になります。
+サーバーは入力と会話を `q-123` からコピーします。リトライによって、リトライ対象の中身が変わってはならないからです。これで `q-123` は永久に `FAILED` のままとなり、`q-124` は独自のトレースを持ち、`q-123 → q-124` という系譜（lineage）が明示的かつ監査可能になります。
+
+`retryOf` が指すのは古い `requestId` ではなく `queryId` です。リクエスト ID は一回の*呼び出し*に対する短命なキーです。一方、系譜は*実行*同士の関係なので、永続的な記録を参照すべきです。
+
+API によっては、リトライを明示的なアクションにしているものもあります。たとえば Google の[カスタムメソッド（custom methods）](https://google.aip.dev/136)のスタイルでの `POST /queries/q-123:retry` です。Azure Data Factory は、失敗した実行を参照しそのパラメーターを再利用する[新しいパイプライン実行を開始](https://learn.microsoft.com/en-us/rest/api/datafactory/pipelines/create-run)し、GitHub Actions はワークフローを新しい試行（attempt）として[再実行](https://docs.github.com/en/rest/actions/workflow-runs#re-run-a-workflow)しつつ、以前の試行も保持します。どちらの形でも構いません。重要なのは、古い実行にリンクされた新しい実行であることです。
 
 ## まだ API の形を変えられない場合
 
-現時点で私たちには `/query` しかなく、顧客もそれに依存しています。それでも、ID を再利用する代わりにフィールドを追加すれば、保証を維持できます。
+現時点で私たちには `/query` しかなく、顧客もそれに依存しています。新しい `requestId` と `retryOf` フィールドを使えば、同じ保証を維持できます。
 
 ```http
 POST /query
-{ "queryId": "q-124", "retryOf": "q-123", "input": "Triage incident INC-42" }
+{ "requestId": "r-2", "retryOf": "q-123" }
 ```
 
 サーバー側のルールは次のとおりです。
 
 ```python
 def handle_query(req):
-    existing = store.get(req.query_id)
-    if existing:
-        # Same ID: never re-run. Reject if the request means something different.
-        if existing.fingerprint != fingerprint(req):
-            raise Conflict("queryId reused with different parameters")
-        return existing.status_view()
+    claim = idempotency.get(req.tenant_id, req.request_id)
+    if claim:
+        # Same request ID: never re-run. Reject if the request means something different.
+        if claim.fingerprint != fingerprint(req):
+            raise Conflict("requestId reused with different parameters")
+        return queries.get(claim.query_id).status_view()
 
     if req.retry_of:
-        parent = store.get(req.retry_of)
+        parent = queries.get(req.retry_of)
         if parent is None or parent.status != "FAILED" or not parent.error.retryable:
             raise BadRequest("retryOf must point to a failed, retryable query")
+        input, conversation_id = parent.input, parent.conversation_id  # never trust a re-sent input
+    else:
+        input, conversation_id = req.input, req.conversation_id or new_conversation_id()
 
-    execution = store.create(           # conditional write: fails if the ID already exists
-        query_id=req.query_id,
-        retry_of=req.retry_of,
-        fingerprint=fingerprint(req),
-        status="RUNNING",
-    )
-    start_workflow(execution)
-    return execution.status_view()
+    query_id = new_query_id()
+    # Conditional write: if another call claimed this requestId first, return its query instead.
+    if not idempotency.put_if_absent(req.tenant_id, req.request_id, query_id, fingerprint(req), ttl=days(7)):
+        return handle_query(req)
+
+    query = queries.create(query_id=query_id, conversation_id=conversation_id,
+                           retry_of=req.retry_of, input=input, status="RUNNING")
+    start_workflow(query)
+    return query.status_view()
 ```
 
-重要なポイントは三つあります。
+重要なポイントは四つあります。
 
-1. **条件付き書き込み（conditional write）で作成します**（たとえば DynamoDB の `attribute_not_exists` 条件）。これにより、同時に行われた二つの最初の呼び出しが両方とも実行を開始することを防げます。
-2. **リクエストのフィンガープリントを取ります。** 誰かが異なる入力で ID を再利用した場合、無関係な結果を黙って返すのではなく、競合（conflict）を返します。Builders' Library もこの点を明示的に指摘しています。
+1. **条件付き書き込み（conditional write）で `requestId` を確保します**（たとえば DynamoDB の `attribute_not_exists` 条件）。テナントごとにスコープを分けることで、同時に行われた二つの最初の呼び出しが両方とも実行を開始することを防げます。
+2. **リクエストのフィンガープリントを取ります。** 誰かが異なるボディでリクエスト ID を再利用した場合、無関係な結果を黙って返すのではなく、競合（conflict）を返します。Builders' Library もこの点を明示的に指摘しています。
 3. **親を検証します。** 再実行は、終了状態でリトライ可能な失敗からのみ許可します。`RUNNING` や `SUCCEEDED` からは決して許可しません。
+4. **会話の中でリトライであることを明示します。** 会話には新しいターンと、失敗したターンのリトライの両方が含まれます。エージェントのコンテキストを再構築するときは、各ターンの最新の試行だけを残してください。そうしないと、失敗した試行とそのリトライが別々の二つのターンに見えてしまいます。
 
 ## 冪等性はツールにまで届かなければならない
 
@@ -115,11 +135,11 @@ def handle_query(req):
 
 ## チェックリスト
 
-- 一つのリクエスト ID は、永久に一つの実行を意味する。
+- 一つのリクエスト ID は、永久に一つの実行に対応させる。
+- `requestId` はクライアントが、`queryId` と `conversationId` はサーバーが管理する。
 - 終了状態はイミュータブル（immutable）にする。復旧では新しい実行を作成する。
-- リトライを明示的にリンク（`retryOf`）し、系譜を監査可能にする。
-- 実行の作成には条件付き書き込みを使う。
-- 異なるパラメーターで再利用された ID は拒否する。
+- リトライは失敗した `queryId` にリンク（`retryOf`）し、入力はサーバー側でコピーする。
+- リクエスト ID は条件付き書き込みで確保し、異なるパラメーターでの再利用は拒否する。
 - 可能であれば、非同期処理の作成と読み取りを分ける。
 - 副作用を持つすべてのツールまで冪等性を行き渡らせる。
 
