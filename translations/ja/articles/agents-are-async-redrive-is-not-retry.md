@@ -1,7 +1,7 @@
 ---
 title: "エージェントは非同期：「同じリクエスト ID で再実行」が冪等性を壊す理由"
 description: "ある顧客から、失敗したエージェントのワークフローを同じリクエスト ID で再実行したいという要望がありました。それが冪等性、監査可能性、トレーシングを壊す理由と、代わりに何を作るべきかを解説します。"
-sourceHash: "10dbb18d26e7309b"
+sourceHash: "6fd30a7c6c3141cd"
 ---
 
 私は、顧客が実際の業務をこなす AI エージェントをホストするプラットフォームの開発に携わっています。エージェントはチケットを解決し、コメントを追加し、インシデントをトリアージします。ある顧客のサービスは、私たちの API を呼び出してエージェントを直接起動しています。最近、その顧客から一見もっともな要望がありました。
@@ -127,8 +127,6 @@ def handle_query(req):
 
 ## 最後に、ひとつ問いを
 
-AWS Step Functions には [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) という機能があります。失敗した実行を、失敗したステップから**同じ実行 ARN のまま**再開するものです。これは、まさにこの記事が否定してきたことのように聞こえます。
+AWS Step Functions は、失敗した実行を**同じ実行 ARN のまま** [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) できます。まさにこの記事が警告してきたことのように聞こえます。
 
-では、Step Functions はどうやって redrive を安全に保っているのでしょうか。同じ実行がもう一度動くとき、不変性（immutability）と監査可能性（auditability）をどのように守っているのでしょうか。
-
-ヒント：実行のイベント履歴に何が起きるか、そして redrive のたびに何が記録されるかを見てみてください。
+では、redrive はどうやって不変性（immutability）と監査可能性（auditability）を保っているのでしょうか。ヒント：実行のイベント履歴を見てみてください。

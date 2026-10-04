@@ -128,8 +128,6 @@ Agents make all of this more pressing, not less. They are long-running, they ret
 
 ## A question to leave you with
 
-AWS Step Functions has a feature called [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html): it restarts a failed execution from the step that failed, **under the same execution ARN**. That sounds like exactly what this post argues against.
+AWS Step Functions can [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) a failed execution under the **same execution ARN**, which sounds like exactly what this post warns against.
 
-So how does Step Functions keep redrive safe? When the same execution runs again, how does it preserve immutability and auditability?
-
-Hint: look at what happens to the execution's event history, and what it records about each redrive.
+So how does redrive stay immutable and auditable? Hint: look at the execution's event history.

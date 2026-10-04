@@ -1,7 +1,7 @@
 ---
 title: "Agent 是非同步的：為什麼「用同一個 request ID 重新執行」會破壞冪等性"
 description: "有客戶要求我們在同一個 request ID 下重新執行失敗的 agent 工作流程。本文說明這樣做為什麼會破壞冪等性、可稽核性與追蹤，以及應該怎麼設計。"
-sourceHash: "10dbb18d26e7309b"
+sourceHash: "6fd30a7c6c3141cd"
 ---
 
 我在一個平台上工作，客戶在上面託管會做實事的 AI agent：處理工單、新增留言、分類事件。有一位客戶的服務會直接呼叫我們的 API 來觸發他們的 agent。最近他們提出了一個聽起來很合理的要求：
@@ -127,8 +127,6 @@ Agent 只會讓這些事情變得更迫切，而不是更不重要。它們執�
 
 ## 留給你的一個問題
 
-AWS Step Functions 有一個叫 [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) 的功能：它會從失敗的步驟重新啟動一個失敗的執行，**而且沿用同一個執行 ARN**。這聽起來正是這篇文章反對的做法。
+AWS Step Functions 可以用**同一個執行 ARN** [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) 一個失敗的執行，聽起來正是這篇文章警告的做法。
 
-那麼，Step Functions 是怎麼讓 redrive 保持安全的？當同一個執行再跑一次時，它如何維持不可變性（immutability）與可稽核性（auditability）？
-
-提示：看看執行的事件歷史（event history）發生了什麼，以及每次 redrive 時它記錄了哪些資訊。
+那麼，redrive 如何維持不可變性（immutability）與可稽核性（auditability）？提示：看看執行的事件歷史（event history）。
