@@ -3,6 +3,7 @@ title: 'Agents are probabilistic: why evals come first in production'
 description: 'I spent a week hand-checking 50 tickets to promote one agent change. Here is the eval framework I want instead: why evals matter, what they are, and how to run them before and after release.'
 pubDate: 2026-10-04
 tags: ['agents', 'evals', 'llm']
+visibility: draft
 ---
 
 A few months ago I joined an agent platform team in a payments organization at Amazon. We host AI agents for other teams: they resolve tickets, add comments, and triage incidents.

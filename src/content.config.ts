@@ -14,9 +14,9 @@ const articles = defineCollection({
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
     tags: z.array(z.string()).default([]),
-    draft: z.boolean().default(false),
-    // 'offline' takes an article off the site (no page, no listing) without deleting the file.
-    visibility: z.enum(['public', 'offline']).default('public'),
+    // Only 'public' articles are on the site. New articles start as 'draft' (work in progress);
+    // 'offline' takes a finished article off the site (no page, no listing) without deleting the file.
+    visibility: z.enum(['public', 'draft', 'offline']).default('draft'),
   }),
 });
 

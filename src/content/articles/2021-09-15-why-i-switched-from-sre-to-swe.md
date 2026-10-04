@@ -3,6 +3,7 @@ title: 'Why I switched my career from SRE to SWE'
 description: 'From configuring other companies’ products to building my own: the story behind moving from Site Reliability Engineering to Software Engineering.'
 pubDate: 2021-09-15
 tags: ['career', 'sre']
+visibility: public
 ---
 
 > Originally posted on [LinkedIn](https://www.linkedin.com/posts/activity-6843957426618810368-MlBA) in September 2021.

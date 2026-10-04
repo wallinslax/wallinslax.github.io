@@ -1,7 +1,7 @@
 ---
 title: "我為什麼從 SRE 轉職成 SWE"
 description: "從設定別家公司的產品，到打造自己的產品：我從網站可靠性工程轉向軟體工程背後的故事。"
-sourceHash: "196675bd52e68e12"
+sourceHash: "425d2ed00043c519"
 ---
 
 > 原文於 2021 年 9 月發表在 [LinkedIn](https://www.linkedin.com/posts/activity-6843957426618810368-MlBA)。
