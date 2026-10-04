@@ -126,7 +126,7 @@ Two ways to handle that, and agent platforms usually need both:
 
 Agents make all of this more pressing, not less. They are long-running, they retry, and they touch real systems. The safest assumption is that every operation will run more than once, so design for that from the start.
 
-## A question to leave you with
+## Food for thought
 
 AWS Step Functions can [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) a failed execution under the **same execution ARN**, which sounds like exactly what this post warns against.
 

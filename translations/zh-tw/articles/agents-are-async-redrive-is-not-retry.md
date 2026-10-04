@@ -1,7 +1,7 @@
 ---
 title: "Agent 是非同步的：為什麼「用同一個 request ID 重新執行」會破壞冪等性"
 description: "有客戶要求我們在同一個 request ID 下重新執行失敗的 agent 工作流程。本文說明這樣做為什麼會破壞冪等性、可稽核性與追蹤，以及應該怎麼設計。"
-sourceHash: "6fd30a7c6c3141cd"
+sourceHash: "6094140f71d28d72"
 ---
 
 我在一個平台上工作，客戶在上面託管會做實事的 AI agent：處理工單、新增留言、分類事件。有一位客戶的服務會直接呼叫我們的 API 來觸發他們的 agent。最近他們提出了一個聽起來很合理的要求：
@@ -125,7 +125,7 @@ def handle_query(req):
 
 Agent 只會讓這些事情變得更迫切，而不是更不重要。它們執行時間長、會重試，而且會接觸真實的系統。最安全的假設是：每個操作都會執行不只一次，所以從一開始就要為此而設計。
 
-## 留給你的一個問題
+## 想一想
 
 AWS Step Functions 可以用**同一個執行 ARN** [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html) 一個失敗的執行，聽起來正是這篇文章警告的做法。
 
