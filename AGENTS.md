@@ -19,7 +19,7 @@ Personal site and tech blog for Sung-Fu Han, built with Astro and deployed to Gi
 - `src/i18n/en.json`: all English UI text (nav, buttons, home intro). `src/i18n/index.ts`: language helpers
 - `translations/<lang>/`: committed machine translations (`ja`, `zh-tw`); see "Translations" below
 - `src/voices.ts`: the one read-aloud voice per language (en, ja, zh-TW) for the Listen button; no voice picker by design
-- Deploy: push to `master` runs `.github/workflows/deploy.yml`; PRs run the `build-check` job in `ci.yml`
+- Deploy: push to `master` runs `.github/workflows/deploy.yml`; PRs run the `build-check` and `commit-format` jobs in `ci.yml`
 
 ## Commands
 
@@ -111,3 +111,8 @@ Translation rules:
 - Never put the owner's email, student ID, API keys, or other private data on the site.
 - Use the color tokens in `global.css`; every color must work in both themes.
 - Tags are lowercase with hyphens (e.g. `github-pages`).
+- Commit messages and PR titles follow [Conventional Commits](https://www.conventionalcommits.org):
+  `type(scope): summary`, lowercase type, imperative summary, no trailing period, e.g.
+  `feat(article): add share button`, `fix(seo): add robots.txt`, `docs(agents): note sitemap`.
+  Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+  The `commit-format` job in `ci.yml` rejects PRs that don't match.

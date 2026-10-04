@@ -3,6 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [master]
+    types: [opened, edited, synchronize, reopened]
 
 permissions:
   contents: read
@@ -18,3 +19,31 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+
+  commit-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check PR title and commits follow Conventional Commits
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9-]+\))?!?: .+'
+          bad=0
+          check() {
+            if ! printf '%s\n' "$1" | grep -Eq "$pattern"; then
+              echo "::error::Not Conventional Commits format: $1"
+              bad=1
+            fi
+          }
+          check "$PR_TITLE"
+          while IFS= read -r subject; do check "$subject"; done \
+            < <(git log --no-merges --format=%s "$BASE_SHA..$HEAD_SHA")
+          if [ "$bad" = 1 ]; then
+            echo "Use 'type(scope): summary', e.g. 'fix(readme): restore view counter'."
+            exit 1
+          fi
