@@ -11,6 +11,8 @@ const articles = defineCollection({
     updatedDate: z.coerce.date().optional(),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().default(false),
+    // 'offline' takes an article off the site (no page, no listing) without deleting the file.
+    visibility: z.enum(['public', 'offline']).default('public'),
   }),
 });
 

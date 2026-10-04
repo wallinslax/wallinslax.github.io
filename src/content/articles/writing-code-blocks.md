@@ -3,6 +3,7 @@ title: 'Syntax highlighting test'
 description: 'A quick check that code blocks render nicely in light and dark mode.'
 pubDate: 2026-10-02
 tags: ['notes']
+visibility: offline
 ---
 
 Code blocks are highlighted at build time, so there's no JavaScript cost for readers.
