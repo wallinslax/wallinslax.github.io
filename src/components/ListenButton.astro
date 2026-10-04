@@ -85,7 +85,45 @@ const labels = {
       return title ? [title, ...body] : body;
     };
 
-    const speakFrom = (i: number) => {
+    // Speak in sentence-sized pieces. Chrome's online (Google) voices stop after about
+    // 15 seconds of one utterance, and short pieces also make pause/resume and jumps snappy.
+    const MAX = 160;
+    const split = (text: string) => {
+      const sentences = text.match(/(?:[^。！？!?；;.]|\.(?!\s|$))+(?:[。！？!?；;.]+[”」』）)"']*)?\s*/g) ?? [text];
+      const parts: string[] = [];
+      for (const sentence of sentences) {
+        const pieces = sentence.length > MAX ? (sentence.match(/[^，、,：:]+[，、,：:]?\s*/g) ?? [sentence]) : [sentence];
+        // Last resort for a clause with no punctuation: break at spaces, or every MAX characters.
+        const fits = pieces.flatMap((t) => (t.length > MAX ? (t.match(/[\s\S]{1,160}(?:\s+|$)|[\s\S]{1,160}/g) ?? [t]) : [t]));
+        for (const piece of fits) {
+          const last = parts.length - 1;
+          if (last >= 0 && parts[last].length + piece.length <= MAX) parts[last] += piece;
+          else parts.push(piece);
+        }
+      }
+      return parts.map((t) => t.trim()).filter(Boolean);
+    };
+
+    let part = 0;
+    let parts: string[] = [];
+    // Keep a reference: Chrome can garbage-collect a pending utterance and never fire onend.
+    let utterance: SpeechSynthesisUtterance | undefined;
+
+    const speakPart = () => {
+      utterance = new SpeechSynthesisUtterance(parts[part]);
+      if (voice) utterance.voice = voice;
+      utterance.lang = voice?.lang ?? lang;
+      utterance.rate = 1;
+      const current = ++run;
+      utterance.onend = () => {
+        if (current !== run || state !== 'playing') return;
+        if (++part < parts.length) speakPart();
+        else speakFrom(index + 1);
+      };
+      synth.speak(utterance);
+    };
+
+    const speakFrom = (i: number, fromPart = 0) => {
       clearHighlight();
       if (i >= blocks.length) {
         setState('idle');
@@ -96,16 +134,23 @@ const labels = {
       el.classList.add('speaking');
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       el.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
-      const utterance = new SpeechSynthesisUtterance(el.innerText.replace(/\s*\[\d+\]/g, ''));
-      if (voice) utterance.voice = voice;
-      utterance.lang = voice?.lang ?? lang;
-      utterance.rate = 1;
-      const current = ++run;
-      utterance.onend = () => {
-        if (current === run && state === 'playing') speakFrom(index + 1);
-      };
-      synth.speak(utterance);
+      parts = split(el.innerText.replace(/\s*\[\d+\]/g, ''));
+      part = Math.min(fromPart, parts.length - 1);
+      speakPart();
     };
+
+    // Start over at a block, also from a paused state (Chrome keeps the paused flag after cancel).
+    const restart = (i: number, fromPart = 0) => {
+      run++;
+      synth.cancel();
+      synth.resume();
+      setState('playing');
+      speakFrom(i, fromPart);
+    };
+
+    // Online voices (Chrome's Google voices) don't pause reliably, so for those, pause means
+    // stop and resume means repeat the current sentence. Local voices use the native pause.
+    const online = () => !!voice && !voice.localService;
 
     play.addEventListener('click', () => {
       if (state === 'idle') {
@@ -114,11 +159,15 @@ const labels = {
         setState('playing');
         speakFrom(0);
       } else if (state === 'playing') {
-        synth.pause();
+        if (online()) {
+          run++;
+          synth.cancel();
+        } else synth.pause();
         setState('paused');
       } else {
-        synth.resume();
         setState('playing');
+        if (online()) speakFrom(index, part);
+        else synth.resume();
       }
     });
 
@@ -129,10 +178,7 @@ const labels = {
       if (target.closest('a, button') || window.getSelection()?.toString()) return;
       const i = blocks.findIndex((el) => el.contains(target));
       if (i === -1) return;
-      run++;
-      synth.cancel();
-      setState('playing');
-      speakFrom(i);
+      restart(i);
     });
 
     stop.addEventListener('click', () => {
