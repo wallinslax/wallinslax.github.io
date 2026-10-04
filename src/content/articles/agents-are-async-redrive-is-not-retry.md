@@ -125,3 +125,11 @@ Two ways to handle that, and agent platforms usually need both:
 - Push idempotency down to every tool with side effects.
 
 Agents make all of this more pressing, not less. They are long-running, they retry, and they touch real systems. The safest assumption is that every operation will run more than once, so design for that from the start.
+
+## A question to leave you with
+
+AWS Step Functions has a feature called [redrive](https://docs.aws.amazon.com/step-functions/latest/dg/redrive-executions.html): it restarts a failed execution from the step that failed, **under the same execution ARN**. That sounds like exactly what this post argues against.
+
+So how does Step Functions keep redrive safe? When the same execution runs again, how does it preserve immutability and auditability?
+
+Hint: look at what happens to the execution's event history, and what it records about each redrive.
