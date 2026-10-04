@@ -3,6 +3,7 @@ title: 'Hello, world: rebuilding my site with Astro'
 description: 'Why I moved this site from hand-written HTML to Astro, and how it deploys to GitHub Pages.'
 pubDate: 2026-10-03
 tags: ['astro', 'github-pages']
+visibility: offline
 ---
 
 This site started as a folder of hand-written HTML for coursework. It's now an [Astro](https://astro.build) site: pages are plain HTML at build time, and articles are just Markdown files.

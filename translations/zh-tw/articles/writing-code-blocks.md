@@ -1,7 +1,7 @@
 ---
 title: "語法突顯測試"
 description: "快速確認程式碼區塊在淺色與深色模式下都能正常顯示。"
-sourceHash: "818c3fb4b013066d"
+sourceHash: "1c0b7ccb2b6a3880"
 ---
 
 程式碼區塊在建置時就完成語法突顯，所以讀者端不需要額外載入任何 JavaScript。

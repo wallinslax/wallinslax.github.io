@@ -1,7 +1,7 @@
 ---
 title: "Hello, world：用 Astro 重建我的網站"
 description: "為什麼我把這個網站從手寫 HTML 搬到 Astro，以及它如何部署到 GitHub Pages。"
-sourceHash: "c9299e5166434612"
+sourceHash: "721975b8947c2b94"
 ---
 
 這個網站一開始只是一個放課堂作業的資料夾，裡面都是手寫的 HTML。現在它是一個 [Astro](https://astro.build) 網站：頁面在建置時就產生為純 HTML，文章則只是 Markdown 檔案。

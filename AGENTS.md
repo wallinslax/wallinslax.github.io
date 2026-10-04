@@ -7,7 +7,7 @@ Personal site and tech blog for Sung-Fu Han, built with Astro and deployed to Gi
 
 - `src/components/pages/`: home, articles list (with tag filter), and article page, each taking a `lang`
 - `src/pages/`: thin routes for English (`/`) and translations (`src/pages/[lang]/` → `/ja/`, `/zh-tw/`), plus RSS
-- `src/content/articles/*.md`: articles (front matter: `title`, `description`, `pubDate`, `tags`, `draft`)
+- `src/content/articles/*.md`: articles (front matter: `title`, `description`, `pubDate`, `tags`, `draft`, `visibility`: `public` by default, or `offline` to take an article off the site without deleting it). Lists are sorted newest first in `getArticles()` (`src/utils.ts`)
 - `src/consts.ts`: site title, links, giscus and Google Analytics config
 - `src/components/Analytics.astro` + `ConsentBar.astro`: GA4 with Consent Mode; loads only on the live host, and only European-time-zone visitors see the consent bar
 - `src/styles/global.css`: color tokens for light and dark themes

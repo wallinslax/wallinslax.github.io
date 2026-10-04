@@ -1,7 +1,7 @@
 ---
 title: "Hello, world: Astro でサイトを作り直しました"
 description: "このサイトを手書きの HTML から Astro に移行した理由と、GitHub Pages へのデプロイの仕組みについて。"
-sourceHash: "c9299e5166434612"
+sourceHash: "721975b8947c2b94"
 ---
 
 このサイトは、授業の課題用に手書きした HTML ファイルの入ったフォルダから始まりました。今では [Astro](https://astro.build) のサイトになっています。ページはビルド時にプレーンな HTML として生成され、記事は単なる Markdown ファイルです。

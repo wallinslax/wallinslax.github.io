@@ -4,7 +4,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import { localizePath, type Lang } from './i18n';
 
 export async function getArticles() {
-  const articles = await getCollection('articles', ({ data }) => !data.draft);
+  const articles = await getCollection('articles', ({ data }) => !data.draft && data.visibility === 'public');
   return articles.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 }
 
