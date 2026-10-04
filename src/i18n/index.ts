@@ -61,6 +61,7 @@ export function splitLangPath(pathname: string): { lang: Lang; path: string } {
   return { lang: 'en', path: pathname };
 }
 
+// Front matter dates are midnight UTC; format in UTC so a build in another time zone shows the same day.
 export function formatDateFor(lang: Lang, date: Date) {
-  return date.toLocaleDateString(LANG_META[lang].dateLocale, { year: 'numeric', month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(LANG_META[lang].dateLocale, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
