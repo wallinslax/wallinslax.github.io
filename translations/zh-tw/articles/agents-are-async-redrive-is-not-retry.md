@@ -1,7 +1,7 @@
 ---
 title: "Agent 是非同步的：為什麼「用同一個 request ID 重新執行」會破壞冪等性"
 description: "有客戶要求我們在同一個 request ID 下重新執行失敗的 agent 工作流程。本文說明這樣做為什麼會破壞冪等性、可稽核性與追蹤，以及應該怎麼設計。"
-sourceHash: "9abe7b4bb6319777"
+sourceHash: "53772fcae357b3b2"
 ---
 
 我在一個平台上工作，客戶在上面託管會做實事的 AI agent：處理工單、新增留言、分類事件。有一位客戶的服務會直接呼叫我們的 API 來觸發他們的 agent。最近他們提出了一個聽起來很合理的要求：
@@ -27,8 +27,8 @@ sourceHash: "9abe7b4bb6319777"
 
 ```http
 POST /query
-{ "requestId": "r-1", "conversationId": "c-7", "input": "Triage incident INC-42" }
-→ { "queryId": "q-123", "status": "RUNNING" }
+{ "requestId": "r-1", "input": "Triage incident INC-42" }
+→ { "queryId": "q-123", "conversationId": "c-7", "status": "RUNNING" }
 ```
 
 在背後，LLM 會跑上幾秒到幾分鐘，過程中呼叫 MCP 工具。這些工具有副作用（side effect）：會貼出留言、會改變工單狀態、會呼叫某人起來處理。
@@ -56,8 +56,8 @@ POST /query
 ```http
 POST /queries                  # create; the client's requestId is the idempotency key
 Idempotency-Key: r-1
-{ "conversationId": "c-7", "input": "Triage incident INC-42" }
-→ 202 Accepted  { "queryId": "q-123", "status": "RUNNING" }
+{ "input": "Triage incident INC-42" }    # no conversationId yet: the server starts one
+→ 202 Accepted  { "queryId": "q-123", "conversationId": "c-7", "status": "RUNNING" }
 
 GET  /queries/q-123            # read progress; always safe to repeat
 → 200 OK        { "status": "FAILED", "error": { "retryable": true } }

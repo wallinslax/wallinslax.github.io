@@ -1,7 +1,7 @@
 ---
 title: "エージェントは非同期：「同じリクエスト ID で再実行」が冪等性を壊す理由"
 description: "ある顧客から、失敗したエージェントのワークフローを同じリクエスト ID で再実行したいという要望がありました。それが冪等性、監査可能性、トレーシングを壊す理由と、代わりに何を作るべきかを解説します。"
-sourceHash: "9abe7b4bb6319777"
+sourceHash: "53772fcae357b3b2"
 ---
 
 私は、顧客が実際の業務をこなす AI エージェントをホストするプラットフォームの開発に携わっています。エージェントはチケットを解決し、コメントを追加し、インシデントをトリアージします。ある顧客のサービスは、私たちの API を呼び出してエージェントを直接起動しています。最近、その顧客から一見もっともな要望がありました。
@@ -27,8 +27,8 @@ sourceHash: "9abe7b4bb6319777"
 
 ```http
 POST /query
-{ "requestId": "r-1", "conversationId": "c-7", "input": "Triage incident INC-42" }
-→ { "queryId": "q-123", "status": "RUNNING" }
+{ "requestId": "r-1", "input": "Triage incident INC-42" }
+→ { "queryId": "q-123", "conversationId": "c-7", "status": "RUNNING" }
 ```
 
 その裏では LLM が数秒から数分にわたって動作し、途中で MCP ツールを呼び出します。これらのツールには副作用（side effect）があります。コメントが投稿され、チケットの状態が変わり、誰かが呼び出されます。
@@ -56,8 +56,8 @@ POST /query
 ```http
 POST /queries                  # create; the client's requestId is the idempotency key
 Idempotency-Key: r-1
-{ "conversationId": "c-7", "input": "Triage incident INC-42" }
-→ 202 Accepted  { "queryId": "q-123", "status": "RUNNING" }
+{ "input": "Triage incident INC-42" }    # no conversationId yet: the server starts one
+→ 202 Accepted  { "queryId": "q-123", "conversationId": "c-7", "status": "RUNNING" }
 
 GET  /queries/q-123            # read progress; always safe to repeat
 → 200 OK        { "status": "FAILED", "error": { "retryable": true } }

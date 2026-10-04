@@ -28,8 +28,8 @@ There is one endpoint, `/query`, and three IDs:
 
 ```http
 POST /query
-{ "requestId": "r-1", "conversationId": "c-7", "input": "Triage incident INC-42" }
-→ { "queryId": "q-123", "status": "RUNNING" }
+{ "requestId": "r-1", "input": "Triage incident INC-42" }
+→ { "queryId": "q-123", "conversationId": "c-7", "status": "RUNNING" }
 ```
 
 Behind it, an LLM runs for seconds to minutes and calls MCP tools along the way. Those tools have side effects: a comment is posted, a ticket changes state, someone gets paged.
@@ -57,8 +57,8 @@ An async workflow is a resource with a lifecycle. It wants the usual create/read
 ```http
 POST /queries                  # create; the client's requestId is the idempotency key
 Idempotency-Key: r-1
-{ "conversationId": "c-7", "input": "Triage incident INC-42" }
-→ 202 Accepted  { "queryId": "q-123", "status": "RUNNING" }
+{ "input": "Triage incident INC-42" }    # no conversationId yet: the server starts one
+→ 202 Accepted  { "queryId": "q-123", "conversationId": "c-7", "status": "RUNNING" }
 
 GET  /queries/q-123            # read progress; always safe to repeat
 → 200 OK        { "status": "FAILED", "error": { "retryable": true } }
