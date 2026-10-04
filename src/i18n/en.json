@@ -28,5 +28,8 @@
   "footer.motto": "Less is more.",
   "consent.text": "Allow anonymous analytics so I can see which articles people read?",
   "consent.allow": "Allow",
-  "consent.decline": "No thanks"
+  "consent.decline": "No thanks",
+  "share.button": "Share",
+  "share.label": "Share this article",
+  "share.copied": "Link copied"
 }

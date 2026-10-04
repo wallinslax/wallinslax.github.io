@@ -118,5 +118,17 @@
   "consent.decline": {
     "source": "No thanks",
     "text": "不用了"
+  },
+  "share.button": {
+    "source": "Share",
+    "text": "分享"
+  },
+  "share.label": {
+    "source": "Share this article",
+    "text": "分享這篇文章"
+  },
+  "share.copied": {
+    "source": "Link copied",
+    "text": "已複製連結"
   }
 }

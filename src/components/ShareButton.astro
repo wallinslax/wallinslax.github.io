@@ -1,0 +1,84 @@
+---
+// Share the current article: the phone's share sheet where available, otherwise copy the link.
+import { useStrings, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  url: string;
+}
+
+const { lang, title, url } = Astro.props;
+const t = useStrings(lang);
+---
+
+<button type="button" class="share" id="share" data-url={url} data-title={title} data-copied={t('share.copied')} aria-label={t('share.label')} title={t('share.label')}>
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+    <path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+  <span id="share-label">{t('share.button')}</span>
+</button>
+
+<script>
+  const button = document.getElementById('share') as HTMLButtonElement | null;
+  const label = document.getElementById('share-label') as HTMLElement | null;
+  if (button && label) {
+    const original = label.textContent;
+    const { url = location.href, title = document.title, copied = '' } = button.dataset;
+    const canShare = typeof navigator.share === 'function' && matchMedia('(pointer: coarse)').matches;
+
+    const flash = () => {
+      label.textContent = copied;
+      button.dataset.state = 'copied';
+      setTimeout(() => {
+        label.textContent = original;
+        delete button.dataset.state;
+      }, 2000);
+    };
+
+    const copy = async () => {
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        // Older browsers: fall back to a temporary text field.
+        const field = Object.assign(document.createElement('textarea'), { value: url });
+        document.body.append(field);
+        field.select();
+        document.execCommand('copy');
+        field.remove();
+      }
+      flash();
+    };
+
+    button.addEventListener('click', async () => {
+      if (canShare) {
+        try {
+          await navigator.share({ title, url });
+          return;
+        } catch (error) {
+          if ((error as DOMException).name === 'AbortError') return; // reader closed the share sheet
+        }
+      }
+      await copy();
+    });
+  }
+</script>
+
+<style>
+  .share {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .share:hover { border-color: var(--muted); }
+  .share:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .share[data-state='copied'] { color: var(--accent); border-color: var(--accent); }
+</style>

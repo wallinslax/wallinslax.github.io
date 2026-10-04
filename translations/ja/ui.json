@@ -118,5 +118,17 @@
   "consent.decline": {
     "source": "No thanks",
     "text": "許可しない"
+  },
+  "share.button": {
+    "source": "Share",
+    "text": "共有"
+  },
+  "share.label": {
+    "source": "Share this article",
+    "text": "この記事を共有"
+  },
+  "share.copied": {
+    "source": "Link copied",
+    "text": "リンクをコピーしました"
   }
 }
