@@ -18,7 +18,8 @@ const { pubDate, updatedDate, tags } = article.en.data;
 // Render the translation when it is current; otherwise fall back to the English article.
 const { Content } = await render(article.translation ?? article.en);
 const contentLang = article.translation ? lang : 'en';
-const minutes = readingTime(article.body);
+// Same content in every language, so every language shows the English reading time.
+const minutes = readingTime(article.en.body);
 const englishPath = `/articles/${article.id}/`;
 const shareUrl = new URL(localizePath(englishPath, lang), Astro.site).href;
 ---

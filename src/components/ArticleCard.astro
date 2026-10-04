@@ -10,7 +10,8 @@ interface Props {
 const { article, lang } = Astro.props;
 const t = useStrings(lang);
 const { pubDate, tags } = article.en.data;
-const minutes = readingTime(article.body);
+// Same content in every language, so every language shows the English reading time.
+const minutes = readingTime(article.en.body);
 ---
 
 <article>
