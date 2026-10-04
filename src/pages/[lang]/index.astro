@@ -1,12 +1,12 @@
 ---
 import HomePage from '../../components/pages/HomePage.astro';
-import { translatedLangs, type Lang } from '../../i18n';
+import { URL_SEGMENT, langFromSegment, translatedLangs } from '../../i18n';
 
 export function getStaticPaths() {
-  return translatedLangs().map((lang) => ({ params: { lang } }));
+  return translatedLangs().map((lang) => ({ params: { lang: URL_SEGMENT[lang] } }));
 }
 
-const lang = Astro.params.lang as Lang;
+const lang = langFromSegment(Astro.params.lang);
 ---
 
 <HomePage lang={lang} />

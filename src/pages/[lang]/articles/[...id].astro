@@ -1,19 +1,19 @@
 ---
 import ArticlePage from '../../../components/pages/ArticlePage.astro';
-import { translatedLangs, type Lang } from '../../../i18n';
+import { URL_SEGMENT, langFromSegment, translatedLangs } from '../../../i18n';
 import { getLocalArticles, type LocalArticle } from '../../../utils';
 
 export async function getStaticPaths() {
   const paths = [];
   for (const lang of translatedLangs()) {
     for (const article of await getLocalArticles(lang)) {
-      paths.push({ params: { lang, id: article.id }, props: { article } });
+      paths.push({ params: { lang: URL_SEGMENT[lang], id: article.id }, props: { article } });
     }
   }
   return paths;
 }
 
-const lang = Astro.params.lang as Lang;
+const lang = langFromSegment(Astro.params.lang);
 const { article } = Astro.props as { article: LocalArticle };
 ---
 

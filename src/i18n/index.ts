@@ -49,16 +49,28 @@ export function useStrings(lang: Lang) {
     strings[key].replace(/\{(\w+)\}/g, (_, name) => String(vars[name] ?? `{${name}}`));
 }
 
-/** "/articles/" in Japanese is "/ja/articles/"; English has no prefix. */
+// URL segment for each language. Japanese uses "jp" in URLs (the language code stays "ja").
+export const URL_SEGMENT: Record<Lang, string> = { en: '', ja: 'jp', 'zh-tw': 'zh-tw' };
+
+/** "/articles/" in Japanese is "/jp/articles/"; English has no prefix. */
 export function localizePath(path: string, lang: Lang) {
-  return lang === 'en' ? path : `/${lang}${path}`;
+  return lang === 'en' ? path : `/${URL_SEGMENT[lang]}${path}`;
 }
 
-/** Splits "/ja/articles/x/" into { lang: "ja", path: "/articles/x/" }. */
+/** Splits "/jp/articles/x/" into { lang: "ja", path: "/articles/x/" }. */
 export function splitLangPath(pathname: string): { lang: Lang; path: string } {
-  const match = pathname.match(/^\/(ja|zh-tw)(\/.*|$)/);
-  if (match) return { lang: match[1] as Lang, path: match[2] || '/' };
+  for (const lang of LANGS) {
+    const segment = URL_SEGMENT[lang];
+    if (segment && (pathname === `/${segment}` || pathname.startsWith(`/${segment}/`))) {
+      return { lang, path: pathname.slice(segment.length + 1) || '/' };
+    }
+  }
   return { lang: 'en', path: pathname };
+}
+
+/** Language for a [lang] route parameter, e.g. "jp" → "ja". */
+export function langFromSegment(segment: string | undefined): Lang {
+  return LANGS.find((lang) => URL_SEGMENT[lang] === segment) ?? 'en';
 }
 
 export function formatDateFor(lang: Lang, date: Date) {
