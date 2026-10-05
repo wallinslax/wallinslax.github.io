@@ -25,7 +25,7 @@ const englishPath = `/articles/${article.id}/`;
 const shareUrl = new URL(localizePath(englishPath, lang), Astro.site).href;
 ---
 
-<BaseLayout lang={lang} title={article.title} description={article.description} machineTranslated={!!article.translation} ogType="article" publishedTime={pubDate}>
+<BaseLayout lang={lang} title={article.title} description={article.description} machineTranslated={!!article.translation} ogType="article" publishedTime={pubDate} modifiedTime={updatedDate} keywords={tags} contentLang={contentLang}>
   <a class="back" href={localizePath('/articles/', lang)}>{t('article.back')}</a>
   <article lang={contentLang === lang ? undefined : 'en'}>
     <header>
