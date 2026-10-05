@@ -10,7 +10,7 @@
   "home.allArticles": "All articles →",
   "home.comingSoon": "Coming soon.",
   "articles.title": "Articles",
-  "articles.intro": "Notes on web development, tools, and things I'm building.",
+  "articles.intro": "Real problems from my work and life that I took the time to dive deep on.",
   "articles.filterLabel": "Filter by tag",
   "articles.clear": "Clear",
   "articles.showing": "Showing {shown} of {total} articles",
