@@ -112,14 +112,14 @@ def handle_query(req):
 
 Four details matter:
 
-1. **Claim the `requestId` with a conditional write** (e.g. DynamoDB `attribute_not_exists`), per tenant, so two concurrent calls can't both start a run.
+1. **Claim the `requestId` with a conditional write** (for example, DynamoDB `attribute_not_exists`), per tenant, so two concurrent calls can't both start a run.
 2. **Fingerprint the request.** A reused request ID with a different body gets a conflict, not someone else's result [[1]](#ref-1).
 3. **Validate the parent.** Only redrive a terminal, retryable failure.
 4. **Mark retries in the conversation.** When rebuilding the agent's context, keep only the latest attempt of each turn, or a failed attempt and its retry look like two turns.
 
 ## Idempotency has to reach the tools
 
-A new execution ID fixes the bookkeeping, but the failed run's side effects already happened. If `q-123` posted a comment, `q-124` will post it again unless something stops it. Agent platforms usually need both of these:
+A new execution ID fixes the bookkeeping, but the failed run's side effects already happened. If `q-123` posted a comment, `q-124` posts it again unless something stops it. Agent platforms usually need both of these:
 
 - **Idempotent tools.** Key each tool call on stable values, like `hash(rootQueryId, stepId, toolName)`, and dedupe on it. Using the *root* of the retry chain maps a redrive to the same keys. Never let the LLM invent the key or hash its arguments; neither is stable across runs.
 - **Resume, don't restart.** Checkpoint completed steps so a redrive continues from the failure point.

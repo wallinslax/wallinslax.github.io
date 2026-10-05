@@ -134,7 +134,14 @@ The one place for how articles are written. Every new or edited English article 
   Tighten or split a bigger topic into a series rather than going long.
 - **Wording**: follow the [Google developer documentation style guide](https://developers.google.com/style),
   except that first person ("I", "we") is fine for a personal blog. The `vale` job in `ci.yml`
-  checks this on the articles a PR changes (config in `.vale.ini`); there's nothing to run locally.
+  checks this on the articles a PR changes (config in `.vale.ini`). The owner doesn't need to run
+  it; agents install it once per session and run it on every article they change before the PR:
+
+  ```sh
+  curl -fsSL https://github.com/vale-cli/vale/releases/download/v3.12.0/vale_3.12.0_Linux_64-bit.tar.gz \
+    | tar -xz -C ~/.local/bin vale && vale sync
+  vale src/content/articles/<file>.md   # fix errors and warnings; weigh suggestions
+  ```
 - **Tags** are lowercase with hyphens (e.g. `github-pages`).
 
 `npm run build` runs `scripts/check-articles.mjs` first. For every public article it fails the build
