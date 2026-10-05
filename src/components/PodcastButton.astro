@@ -1,0 +1,72 @@
+---
+// Shows a Podcast button only when public/podcasts/<lang>/<article file name>.m4a exists.
+import fs from 'node:fs';
+import path from 'node:path';
+import { useStrings, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+  /** The English article's file path, e.g. src/content/articles/2026-10-02-slug.md */
+  articleFile?: string;
+}
+
+const { lang, articleFile } = Astro.props;
+const t = useStrings(lang);
+const name = articleFile ? path.basename(articleFile, '.md') : undefined;
+const audio = name && fs.existsSync(`public/podcasts/${lang}/${name}.m4a`) ? `/podcasts/${lang}/${name}.m4a` : undefined;
+---
+
+{
+  audio && (
+    <div class="podcast">
+      <button type="button" class="podcast-toggle" aria-expanded="false" aria-controls="podcast-player" aria-label={t('podcast.label')}>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+          <path d="M12 3a9 9 0 0 0-9 9v6a3 3 0 0 0 3 3h1a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1H5v-1a7 7 0 0 1 14 0v1h-2a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h1a3 3 0 0 0 3-3v-6a9 9 0 0 0-9-9z" fill="currentColor" />
+        </svg>
+        <span>{t('podcast.button')}</span>
+      </button>
+      <div id="podcast-player" class="player" hidden>
+        <audio controls preload="none" src={audio}></audio>
+        <p class="note">{t('podcast.note')}</p>
+      </div>
+    </div>
+  )
+}
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.podcast-toggle');
+  const player = document.getElementById('podcast-player');
+  const audio = player?.querySelector('audio');
+  toggle?.addEventListener('click', () => {
+    if (!player || !audio) return;
+    const open = player.hidden;
+    player.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+    if (open) audio.play().catch(() => {});
+    else audio.pause();
+  });
+</script>
+
+<style>
+  .podcast { display: contents; }
+  .podcast-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font: inherit;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .podcast-toggle:hover { border-color: var(--muted); }
+  .podcast-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .podcast-toggle[aria-expanded='true'] { color: var(--accent); border-color: var(--accent); }
+  /* Opens below the whole row of buttons, not between them. */
+  .player { order: 1; flex-basis: 100%; margin-top: 0.5rem; }
+  .player audio { width: 100%; max-width: 32rem; display: block; }
+  .note { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.8rem; }
+</style>

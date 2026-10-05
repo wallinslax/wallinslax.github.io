@@ -107,6 +107,14 @@ Translation rules:
 - Keep HTML tags and `{placeholders}` in UI strings exactly as in the English.
 - Don't add, drop, or summarize content.
 
+## Podcasts
+
+An article shows a Podcast button only when `public/podcasts/en/<article file name>.m4a` exists
+(e.g. `2026-10-02-agents-are-async-redrive-is-not-retry.m4a`); otherwise there is no button. The
+owner makes episodes in NotebookLM (Audio Overview) and drops the file in that folder. Rename it to
+match the article, and re-encode it to mono AAC at 96 kbps to keep the repo small (`afconvert` to a
+mono WAV first, then to `m4af`/`aac`).
+
 ## Conventions
 
 - Articles are reasoning-first: every new article has a `## Why…` section early on that explains why the

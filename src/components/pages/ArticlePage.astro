@@ -3,6 +3,7 @@ import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Comments from '../Comments.astro';
 import ListenButton from '../ListenButton.astro';
+import PodcastButton from '../PodcastButton.astro';
 import ShareButton from '../ShareButton.astro';
 import { formatDateFor, localizePath, useStrings, type Lang } from '../../i18n';
 import { readingTime, tagUrl, type LocalArticle } from '../../utils';
@@ -36,6 +37,7 @@ const shareUrl = new URL(localizePath(englishPath, lang), Astro.site).href;
         {tags.map((tag) => <a class="tag" href={tagUrl(tag, lang)}>{tag}</a>)}
       </div>
       <div class="actions">
+        <PodcastButton lang={lang} articleFile={article.en.filePath} />
         <ListenButton lang={lang} />
         <ShareButton lang={lang} title={article.title} url={shareUrl} />
       </div>

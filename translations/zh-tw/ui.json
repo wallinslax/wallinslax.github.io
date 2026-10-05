@@ -71,6 +71,18 @@
     "source": "Updated {date}",
     "text": "更新於 {date}"
   },
+  "podcast.button": {
+    "source": "Podcast",
+    "text": "Podcast"
+  },
+  "podcast.label": {
+    "source": "Play the podcast episode about this article",
+    "text": "播放這篇文章的 Podcast 節目"
+  },
+  "podcast.note": {
+    "source": "An AI-generated conversation about this article.",
+    "text": "由 AI 生成、討論這篇文章的對話。"
+  },
   "listen.listen": {
     "source": "Listen",
     "text": "朗讀"
