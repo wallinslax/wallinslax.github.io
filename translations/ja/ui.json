@@ -44,8 +44,8 @@
     "text": "記事"
   },
   "articles.intro": {
-    "source": "Notes on web development, tools, and things I'm building.",
-    "text": "Web 開発、ツール、そして自分が作っているものについてのメモです。"
+    "source": "Real problems from my work and life that I took the time to dive deep on.",
+    "text": "仕事や生活で実際に直面した問題のうち、時間をかけて深掘りしたものです。"
   },
   "articles.filterLabel": {
     "source": "Filter by tag",

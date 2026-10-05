@@ -44,8 +44,8 @@
     "text": "文章"
   },
   "articles.intro": {
-    "source": "Notes on web development, tools, and things I'm building.",
-    "text": "關於網頁開發、工具，以及我正在打造的東西的筆記。"
+    "source": "Real problems from my work and life that I took the time to dive deep on.",
+    "text": "來自工作與生活的真實問題，每一個我都花了時間深入研究。"
   },
   "articles.filterLabel": {
     "source": "Filter by tag",
