@@ -25,7 +25,7 @@ Personal site and tech blog for Sung-Fu Han, built with Astro and deployed to Gi
 
 ```sh
 npm ci
-npm run build    # must pass before any PR
+npm run build    # the one check before any PR: article format + site build
 npm run dev      # http://localhost:4321
 ```
 
@@ -133,16 +133,16 @@ The one place for how articles are written. Every new or edited English article 
 - **Length**: a 5–6 minute read (about 1,100–1,300 words; the reading time excludes References).
   Tighten or split a bigger topic into a series rather than going long.
 - **Wording**: follow the [Google developer documentation style guide](https://developers.google.com/style),
-  except that first person ("I", "we") is fine for a personal blog. Vale checks this with
-  `.vale.ini`:
-
-  ```sh
-  vale sync                                  # once, downloads the Google style to .vale/styles/
-  vale src/content/articles/<file>.md        # fix errors; weigh warnings and suggestions
-  ```
-
-  The `vale` job in `ci.yml` runs on articles a PR changes and fails on errors.
+  except that first person ("I", "we") is fine for a personal blog. The `vale` job in `ci.yml`
+  checks this on the articles a PR changes (config in `.vale.ini`); there's nothing to run locally.
 - **Tags** are lowercase with hyphens (e.g. `github-pages`).
+
+`npm run build` runs `scripts/check-articles.mjs` first. For every public article it fails the build
+when the `## Why…` section isn't first or second, the article doesn't end with a takeaways list →
+`## Question for you` → `## References`, References has no links, or an inline `[[n]](#ref-n)`
+citation has no matching entry. Drafts get the same messages as warnings only, and any article
+outside a 5–6 minute read gets a warning. It can't judge whether the problem is real or every claim is backed:
+that's for review.
 
 ## Conventions
 
