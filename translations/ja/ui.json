@@ -71,6 +71,18 @@
     "source": "Updated {date}",
     "text": "{date} 更新"
   },
+  "podcast.button": {
+    "source": "Podcast",
+    "text": "ポッドキャスト"
+  },
+  "podcast.label": {
+    "source": "Play the podcast episode about this article",
+    "text": "この記事についてのポッドキャストを再生"
+  },
+  "podcast.note": {
+    "source": "An AI-generated conversation about this article.",
+    "text": "この記事について AI が生成した対話です。"
+  },
   "listen.listen": {
     "source": "Listen",
     "text": "聴く"
