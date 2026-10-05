@@ -20,6 +20,28 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+  vale:
+    runs-on: ubuntu-latest
+    env:
+      VALE_VERSION: 3.12.0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Vale and the Google style
+        run: |
+          curl -fsSL "https://github.com/vale-cli/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz" \
+            | tar -xz -C /usr/local/bin vale
+          vale sync
+      - name: Check changed articles
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          mapfile -t files < <(git diff --name-only --diff-filter=AM "$BASE_SHA...$HEAD_SHA" -- 'src/content/articles/*.md')
+          if [ ${#files[@]} -eq 0 ]; then echo "No articles changed."; exit 0; fi
+          vale "${files[@]}"
+
   commit-format:
     runs-on: ubuntu-latest
     steps:

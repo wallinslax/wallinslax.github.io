@@ -19,7 +19,7 @@ Personal site and tech blog for Sung-Fu Han, built with Astro and deployed to Gi
 - `src/i18n/en.json`: all English UI text (nav, buttons, home intro). `src/i18n/index.ts`: language helpers
 - `translations/<lang>/`: committed machine translations (`ja`, `zh-tw`); see "Translations" below
 - `src/voices.ts`: the one read-aloud voice per language (en, ja, zh-TW) for the Listen button; no voice picker by design
-- Deploy: push to `mainline` runs `.github/workflows/deploy.yml`; PRs run the `build-check` and `commit-format` jobs in `ci.yml`
+- Deploy: push to `mainline` runs `.github/workflows/deploy.yml`; PRs run the `build-check`, `commit-format`, and `vale` jobs in `ci.yml`
 
 ## Commands
 
@@ -117,17 +117,38 @@ button. The owner makes episodes in NotebookLM (Audio Overview) and drops the fi
 re-encode it to mono AAC at 96 kbps to keep the repo small (`afconvert` to a mono WAV first, then
 to `m4af`/`aac`).
 
+## Article style
+
+The one place for how articles are written. Every new or edited English article follows it.
+
+- **Start from a real problem**: something you hit at work or saw others hit, stated in the
+  first paragraph. Not a topic survey.
+- **Why first**: a `## Why…` section early on explains why the problem exists and why it's worth
+  researching, before any What or How. Why → What → How is the default shape. (The 2021 SRE → SWE
+  essay is a "why" throughout and stays as it is.)
+- **Back claims with sources**: cite facts, numbers, and other people's ideas inline, and list
+  every source in a final `## References` section.
+- **End for the reader**: close with the takeaways (a short list, such as a `## Checklist`), then
+  `## Question for you` with one or two questions for readers, then `## References`.
+- **Length**: a 5–6 minute read (about 1,100–1,300 words; the reading time excludes References).
+  Tighten or split a bigger topic into a series rather than going long.
+- **Wording**: follow the [Google developer documentation style guide](https://developers.google.com/style),
+  except that first person ("I", "we") is fine for a personal blog. Vale checks this with
+  `.vale.ini`:
+
+  ```sh
+  vale sync                                  # once, downloads the Google style to .vale/styles/
+  vale src/content/articles/<file>.md        # fix errors; weigh warnings and suggestions
+  ```
+
+  The `vale` job in `ci.yml` runs on articles a PR changes and fails on errors.
+- **Tags** are lowercase with hyphens (e.g. `github-pages`).
+
 ## Conventions
 
-- Articles are reasoning-first: every new article has a `## Why…` section early on that explains why the
-  problem exists and why it matters, before any What or How. Why → What → How is the default shape.
-  (The 2021 SRE → SWE essay is a "why" throughout and stays as it is.)
-- Articles are a 5–6 minute read (about 1,100–1,300 words; the reading time excludes References).
-  Tighten or split a bigger topic into a series rather than going long.
 - Keep the home page minimal: avatar, one-line intro, icon links, short About, latest articles.
 - Never put the owner's email, student ID, API keys, or other private data on the site.
 - Use the color tokens in `global.css`; every color must work in both themes.
-- Tags are lowercase with hyphens (e.g. `github-pages`).
 - Commit messages and PR titles follow [Conventional Commits](https://www.conventionalcommits.org):
   `type(scope): summary`, lowercase type, imperative summary, no trailing period, e.g.
   `feat(article): add share button`, `fix(seo): add robots.txt`, `docs(agents): note sitemap`.
