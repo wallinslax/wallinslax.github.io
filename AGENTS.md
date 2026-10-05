@@ -109,11 +109,13 @@ Translation rules:
 
 ## Podcasts
 
-An article shows a Podcast button only when `public/podcasts/en/<article file name>.m4a` exists
-(e.g. `2026-10-02-agents-are-async-redrive-is-not-retry.m4a`); otherwise there is no button. The
-owner makes episodes in NotebookLM (Audio Overview) and drops the file in that folder. Rename it to
-match the article, and re-encode it to mono AAC at 96 kbps to keep the repo small (`afconvert` to a
-mono WAV first, then to `m4af`/`aac`).
+An article page shows a Podcast button only when `public/podcasts/<lang>/<article file name>.m4a`
+exists for that page's language (`en`, `ja`, `zh-tw`), e.g.
+`public/podcasts/ja/2026-10-02-agents-are-async-redrive-is-not-retry.m4a`; otherwise there is no
+button. The owner makes episodes in NotebookLM (Audio Overview) and drops the files in
+`public/podcasts/`. Move each into its language folder, rename it to match the article, and
+re-encode it to mono AAC at 96 kbps to keep the repo small (`afconvert` to a mono WAV first, then
+to `m4af`/`aac`).
 
 ## Conventions
 
