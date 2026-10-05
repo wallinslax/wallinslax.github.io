@@ -17,9 +17,14 @@ interface Props {
   machineTranslated?: boolean;
   ogType?: 'website' | 'article';
   publishedTime?: Date;
+  /** Article pages only: feed the BlogPosting structured data. */
+  modifiedTime?: Date;
+  keywords?: string[];
+  /** Language the article text is actually in (English when a translation falls back). */
+  contentLang?: Lang;
 }
 
-const { lang = 'en', title, ogType = 'website', publishedTime } = Astro.props;
+const { lang = 'en', title, ogType = 'website', publishedTime, modifiedTime, keywords, contentLang = lang } = Astro.props;
 const t = useStrings(lang);
 const description = Astro.props.description ?? `${t('home.tagline')}`;
 const machineTranslated = Astro.props.machineTranslated ?? lang !== 'en';
@@ -28,13 +33,30 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 const { path } = splitLangPath(Astro.url.pathname);
 const ogImage = new URL((await getImage({ src: avatar, width: 400, height: 400, format: 'jpg' })).src, Astro.site);
 // On the home page, tell search engines who the site is about.
+const personId = new URL('/#person', Astro.site).href;
 const person = path === '/' && {
   '@context': 'https://schema.org',
   '@type': 'Person',
+  '@id': personId,
   name: SITE_TITLE,
   url: new URL('/', Astro.site).href,
   image: ogImage.href,
   sameAs: [GITHUB_URL, LINKEDIN_URL],
+};
+// On article pages, describe the post and credit it to the same person.
+const posting = ogType === 'article' && {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description,
+  url: canonical.href,
+  mainEntityOfPage: canonical.href,
+  inLanguage: LANG_META[contentLang].htmlLang,
+  datePublished: publishedTime?.toISOString(),
+  dateModified: (modifiedTime ?? publishedTime)?.toISOString(),
+  keywords,
+  image: ogImage.href,
+  author: { '@type': 'Person', '@id': personId, name: SITE_TITLE, url: new URL('/', Astro.site).href },
 };
 const alternates = availableLangs().map((l) => ({ hreflang: LANG_META[l].htmlLang, href: new URL(localizePath(path, l), Astro.site) }));
 ---
@@ -69,6 +91,7 @@ const alternates = availableLangs().map((l) => ({ hreflang: LANG_META[l].htmlLan
     {publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
     <meta name="twitter:card" content="summary" />
     {person && <script type="application/ld+json" set:html={JSON.stringify(person)} />}
+    {posting && <script type="application/ld+json" set:html={JSON.stringify(posting)} />}
   </head>
   <body>
     <Header lang={lang} />
