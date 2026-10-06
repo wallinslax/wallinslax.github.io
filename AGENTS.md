@@ -121,23 +121,26 @@ to `m4af`/`aac`).
 
 The one place for how articles are written. Every new or edited English article follows it.
 
-- **Start from a real problem**: something you hit at work or saw others hit, stated in the
-  first paragraph. Not a topic survey.
+- **Start from a real problem**: something the owner hit at work or in life, stated in the first
+  paragraph as a hook with no heading. Not a topic survey.
 - **Why first**: a `## Why…` section early on explains why the problem exists and why it's worth
   researching, before any What or How. Why → What → How is the default shape. (The 2021 SRE → SWE
   essay is a "why" throughout and stays as it is.)
-- **Back claims with sources**: cite facts, numbers, and other people's ideas inline, and list
-  every source in a final `## References` section.
-- **End for the reader**: close with the takeaways (a short list, such as a `## Checklist`), then
-  `## Question for you` with one or two questions for readers, then `## References`.
+- **Back claims with sources**: cite facts, numbers, and other people's ideas inline with high-quality
+  sources (papers, official docs, primary sources; not vendor blogs without data), and list every
+  source in a final `## References` section: numbered IEEE style with `<span id="ref-N">` anchors,
+  cited as `[[N]](#ref-N)`.
+- **End for the reader**: close with `## Takeaways` (a short list a reader can take back to their
+  team), then `## Question for you` with one question that makes readers think, then `## References`.
+  Every new article uses these exact three headings, in this order, so readers know what to expect.
 - **Length**: a 5–6 minute read (about 1,100–1,300 words; the reading time excludes References).
   Tighten or split a bigger topic into a series rather than going long.
 - **Wording**: follow the [Google developer documentation style guide](https://developers.google.com/style),
   except that first person ("I", "we") is fine for a personal blog. Vale checks this with
-  `.vale.ini`:
+  `.vale.ini`, plus proselint for prose quality (clichés, redundancy, skunked terms):
 
   ```sh
-  vale sync                                  # once, downloads the Google style to .vale/styles/
+  vale sync                                  # once, downloads the Google and proselint styles to .vale/styles/
   vale src/content/articles/<file>.md        # fix errors; weigh warnings and suggestions
   ```
 
