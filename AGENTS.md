@@ -121,6 +121,8 @@ to `m4af`/`aac`).
 
 The one place for how articles are written. Every new or edited English article follows it.
 
+- **Audience**: software engineers (SDEs) and their managers (SDMs). Don't spell out acronyms they
+  already know (LLM, CI, API); keep the business framing (engineering time, risk) managers care about.
 - **Start from a real problem**: something the owner hit at work or in life, stated in the first
   paragraph as a hook with no heading. Not a topic survey.
 - **Why first**: a `## Why…` section early on explains why the problem exists and why it's worth
