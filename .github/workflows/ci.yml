@@ -23,12 +23,12 @@ jobs:
   vale:
     runs-on: ubuntu-latest
     env:
-      VALE_VERSION: 3.12.0
+      VALE_VERSION: 3.24.0
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install Vale and the Google style
+      - name: Install Vale and its styles
         run: |
           curl -fsSL "https://github.com/vale-cli/vale/releases/download/v${VALE_VERSION}/vale_${VALE_VERSION}_Linux_64-bit.tar.gz" \
             | tar -xz -C /usr/local/bin vale
