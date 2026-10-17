@@ -7,10 +7,10 @@ visibility: draft
 ---
 
 <!--
-OUTLINE (draft). Target: 1,100–1,300 words. Sections marked TODO(you) need details only Sung-Fu can give.
+OUTLINE (draft). Target: 1,100–1,300 words. Sections marked "To fill in" need details only Sung-Fu can give.
 -->
 
-<!-- Hook, no heading. TODO(you): one concrete meeting where this happened, to open with. -->
+<!-- Hook, no heading. To fill in: one concrete meeting where this happened, to open with. -->
 
 I'm Taiwanese. I worked at tech companies in Taiwan for years, then moved to the US to look for
 a bigger opportunity. My English isn't great. Following fast American English in a meeting
@@ -25,7 +25,7 @@ and to work out how to get through it.
 
 ## Why I'm writing about this
 
-- TODO(you): how many years in Taiwan, and what kind of work.
+- To fill in: how many years in Taiwan, and what kind of work.
 - The term "bamboo ceiling" comes from Jane Hyun's 2005 book [[1]](#ref-1). It's often
   discussed as an "Asian" issue, but that label is too broad to be useful.
 - I'm East Asian, and the research I trust treats East Asian workplace norms as their own topic,
@@ -50,14 +50,14 @@ Three layers, each with a source:
    across several English accents in one meeting.
 3. **The double bind.** If East Asian employees expect pushback for being assertive, staying
    quiet can be a rational choice, which keeps the gap in place [[5]](#ref-5).
-   TODO(you): a time speaking up backfired, or a time you held back because you expected it to.
+   To fill in: a time speaking up backfired, or a time you held back because you expected it to.
 
-TODO(you): what the reference video (https://www.youtube.com/watch?v=o7aJ70Wyebw) adds. I
+To fill in: what the reference video (https://www.youtube.com/watch?v=o7aJ70Wyebw) adds. I
 couldn't open it from here; tell me the title and the point you want to use.
 
 ## How I'm working on it
 
-TODO(you): what you actually changed. Ideas to confirm or drop:
+To fill in: what you actually changed. Ideas to confirm or drop:
 
 - Writing first: design docs and written proposals, where English is slower but clearer.
 - Speaking early in a meeting, once, with one prepared point.
@@ -68,11 +68,11 @@ weight; make promotion criteria explicit.
 
 ## Takeaways
 
-- TODO: 3–4 bullets after the story is filled in.
+- To fill in: 3–4 bullets after the story is filled in.
 
 ## Question for you
 
-TODO: one question, e.g. "Which habit from your first workplace still shapes how you speak up
+To fill in: one question, for example, "Which habit from your first workplace still shapes how you speak up
 today?"
 
 ## References
@@ -89,4 +89,4 @@ today?"
    The influence of accent on credibility," *J. Exp. Soc. Psychol.*, vol. 46, no. 6,
    pp. 1093–1096, 2010, doi: 10.1016/j.jesp.2010.05.025.
 5. <span id="ref-5"></span>Commentary on [[2]](#ref-2), *Proc. Natl. Acad. Sci. USA*, 2020.
-   [Online]. Available: https://pmc.ncbi.nlm.nih.gov/articles/PMC7071910/ (TODO: confirm authors and title)
+   [Online]. Available: https://pmc.ncbi.nlm.nih.gov/articles/PMC7071910/ (To fill in: confirm authors and title)
