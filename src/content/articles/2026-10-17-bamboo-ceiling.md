@@ -10,16 +10,22 @@ visibility: draft
 OUTLINE (draft). Target: 1,100–1,300 words. Sections marked TODO(you) need details only Sung-Fu can give.
 -->
 
-<!-- Hook, no heading. TODO(you): one concrete moment. A meeting, a review, or an interview
-where the work was fine but the way you said it (or didn't say it) cost you. Where, when, what
-happened, what you felt. -->
+<!-- Hook, no heading. TODO(you): one concrete meeting where this happened, to open with. -->
 
-TODO(you): the moment I first noticed the ceiling.
+I'm Taiwanese. I worked at tech companies in Taiwan for years, then moved to the US to look for
+a bigger opportunity. My English isn't great. Following fast American English in a meeting
+already takes all my attention, and following Indian English is harder still. My team is about
+62% South Asian <!-- TODO(you): confirm "team" vs. org vs. company -->, and I keep running into
+the same wall: my work is solid, but it isn't what gets me noticed.
+
+I grew up with a simple rule: be humble, care about quality, talk less, do more. In Taiwan that
+rule served me well. Here it seems to keep me under what people call the bamboo ceiling. This
+post is my attempt to understand that ceiling from where I stand, as an East Asian man in tech,
+and to work out how to get through it.
 
 ## Why I'm writing about this
 
-- My background: Taiwanese engineer, years at tech companies in Taiwan, now looking for roles in
-  the US. TODO(you): years, kind of work, what brought you to the US.
+- TODO(you): how many years in Taiwan, and what kind of work.
 - The term "bamboo ceiling" comes from Jane Hyun's 2005 book [[1]](#ref-1). It's often
   discussed as an "Asian" issue, but that label is too broad to be useful.
 - I'm East Asian, and the research I trust treats East Asian workplace norms as their own topic,
@@ -36,11 +42,12 @@ Three layers, each with a source:
    people) and found East Asians in the US reach leadership roles less often, and that lower
    assertiveness explains the gap, not lack of motivation [[2]](#ref-2). Their conclusion: it's a
    problem of cultural fit with US leadership norms.
-   TODO(you): which Taiwan workplace habits worked against you (deference to seniority, not
-   contradicting a manager in public, letting work speak for itself, ...).
+   This is my "talk less, do more" rule seen from the outside: in a US meeting, quiet quality
+   reads as having nothing to say.
 2. **Language.** Listeners rate statements as less credible when a speaker has a heavy foreign
    accent, even when they know the speaker is reading a script [[4]](#ref-4).
-   TODO(you): where imperfect English hurt most (interviews, design reviews, on-call, small talk).
+   For me it runs both ways: I'm slower to be understood, and slower to understand, especially
+   across several English accents in one meeting.
 3. **The double bind.** If East Asian employees expect pushback for being assertive, staying
    quiet can be a rational choice, which keeps the gap in place [[5]](#ref-5).
    TODO(you): a time speaking up backfired, or a time you held back because you expected it to.
