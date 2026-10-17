@@ -14,8 +14,8 @@ OUTLINE (draft). Target: 1,100–1,300 words. Sections marked TODO(you) need det
 
 I'm Taiwanese. I worked at tech companies in Taiwan for years, then moved to the US to look for
 a bigger opportunity. My English isn't great. Following fast American English in a meeting
-already takes all my attention, and following Indian English is harder still. My team is about
-62% South Asian <!-- TODO(you): confirm "team" vs. org vs. company -->, and I keep running into
+already takes all my attention, and following Indian English is harder still. About 62% of my
+department is South Asian, and so is my team, and I keep running into
 the same wall: my work is solid, but it isn't what gets me noticed.
 
 I grew up with a simple rule: be humble, care about quality, talk less, do more. In Taiwan that
