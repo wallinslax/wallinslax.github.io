@@ -132,6 +132,18 @@ The one place for how articles are written. Every new or edited English article 
   sources (papers, official docs, primary sources; not vendor blogs without data), and list every
   source in a final `## References` section: numbered IEEE style with `<span id="ref-N">` anchors,
   cited as `[[N]](#ref-N)`.
+  - **Source quality is taste**: prefer top-tier peer-reviewed venues (for example *Nature*,
+    *Science*, *PNAS*, the leading journal of the field) and official primary data. Treat
+    high-volume open-access journals (for example *Scientific Reports*), press coverage, and
+    secondary summaries as weaker: soften the wording ("one study suggests") or leave them out, and
+    never let a key claim rest on them alone. When two sources conflict, say so and lean on the
+    stronger venue.
+  - **Read the full text before citing**: an abstract, press release, or search snippet isn't
+    enough. Check that the claim matches what the paper actually found, including its sample,
+    limits, and any failed replications, so nothing is quoted out of context. Before giving up on
+    a paywalled paper, look for an open copy: OpenAlex (`api.openalex.org/works/doi:<DOI>`,
+    every `locations[].pdf_url`), Unpaywall, a web search for the exact title plus "pdf", Europe
+    PMC, and the authors' university repositories. Never bypass a CAPTCHA or paywall.
 - **End for the reader**: close with `## Takeaways` (a short list a reader can take back to their
   team), then `## Question for you` with one question that makes readers think, then `## References`.
   Every new article uses these exact three headings, in this order, so readers know what to expect.
