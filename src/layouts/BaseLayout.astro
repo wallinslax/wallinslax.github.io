@@ -70,7 +70,7 @@ const alternates = availableLangs().map((l) => ({ hreflang: LANG_META[l].htmlLan
     <link rel="canonical" href={canonical} />
     {alternates.length > 1 && alternates.map(({ hreflang, href }) => <link rel="alternate" hreflang={hreflang} href={href} />)}
     <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href="/rss.xml" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="sitemap" href="/sitemap.xml" />
     <title>{pageTitle}</title>
     <Analytics />
     <script is:inline>
