@@ -11,8 +11,8 @@ Personal site and tech blog for Sung-Fu Han, built with Astro and deployed to Gi
 - `src/consts.ts`: site title, links, giscus and Google Analytics config
 - `src/components/Analytics.astro` + `ConsentBar.astro`: GA4 with Consent Mode; loads only on the live host, and only European-time-zone visitors see the consent bar
 - `src/styles/global.css`: color tokens for light and dark themes
-- Search: `@astrojs/sitemap` (in `astro.config.mjs`) generates `sitemap-index.xml` on every build, so
-  never edit a sitemap by hand. `public/robots.txt` points to it, `BaseLayout.astro` adds schema.org
+- Search: a small `sitemap-xml` integration in `astro.config.mjs` writes one `sitemap.xml` with every
+  built page (all languages) on every build, so never edit a sitemap by hand. `public/robots.txt` points to it, `BaseLayout.astro` adds schema.org
   `Person` data on the home page, and `public/google*.html` is the Search Console verification file
   (don't delete it). If the site URL ever changes, update `site` in `astro.config.mjs` and the
   `Sitemap:` line in `robots.txt`
